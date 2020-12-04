@@ -12,7 +12,8 @@ namespace CocoaFramework.Core
     {
         public static ImmutableArray<BotMiddlewareBase> Middlewares { get; private set; }
 
-        public static void Init(params BotMiddlewareBase[] middlewares)
+        [Obsolete("请不要手动进行初始化")]
+        public static void Init(BotMiddlewareBase[] middlewares)
         {
             Middlewares = ImmutableArray.Create(middlewares);
 

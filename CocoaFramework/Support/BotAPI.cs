@@ -12,6 +12,7 @@ namespace CocoaFramework.Support
     {
         private static MiraiHttpSession? session;
 
+        [Obsolete("请不要手动进行初始化")]
         public static void Init(MiraiHttpSession _session)
         {
             session = _session;

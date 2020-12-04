@@ -15,7 +15,7 @@ namespace CocoaFramework.Docking
         private static bool connecting = false;
         private static readonly MiraiHttpSession session = new MiraiHttpSession();
 
-        public static async Task<bool> Start(string host, int port, string authKey, long qqID)
+        public static async Task<bool> Start(BotStartupConfig config)
         {
             if (connecting)
             {
@@ -25,10 +25,10 @@ namespace CocoaFramework.Docking
             {
                 connecting = true;
             }
-            MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(host, port, authKey);
+            MiraiHttpSessionOptions options = new MiraiHttpSessionOptions(config.host, config.port, config.authKey);
             try
             {
-                await session.ConnectAsync(options, qqID);
+                await session.ConnectAsync(options, config.qqID);
             }
             catch
             {
@@ -37,8 +37,7 @@ namespace CocoaFramework.Docking
             if (session.Connected)
             {
                 session.AddPlugin(new MainPlugin());
-                Assembly userAssembly = Assembly.GetEntryAssembly()!;
-                await BotCore.Init(session, userAssembly);
+                await BotCore.Init(session, config);
                 return true;
             }
             else
@@ -50,6 +49,26 @@ namespace CocoaFramework.Docking
         public static ValueTask Dispose()
         {
             return session.DisposeAsync();
+        }
+    }
+
+    public class BotStartupConfig
+    {
+        public string host;
+        public int port;
+        public string authKey;
+        public long qqID;
+
+        public List<BotMiddlewareBase> Middlewares { get; } = new();
+        public Assembly assembly;
+
+        public BotStartupConfig(string host, int port, string authKey, long qqID)
+        {
+            this.host = host;
+            this.port = port;
+            this.authKey = authKey;
+            this.qqID = qqID;
+            assembly = Assembly.GetEntryAssembly()!;
         }
     }
 }

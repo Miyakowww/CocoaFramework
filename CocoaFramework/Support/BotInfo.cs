@@ -13,11 +13,11 @@ namespace CocoaFramework.Support
 
         public static async Task ReloadAll()
         {
-            Task g = ReloadGroups();
             Task f = ReloadFriends();
+            Task g = ReloadGroups();
 
-            await g;
             await f;
+            await g;
         }
 
         public static async Task ReloadGroups()

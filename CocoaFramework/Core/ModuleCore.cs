@@ -109,7 +109,7 @@ namespace CocoaFramework.Core
                     continue;
                 }
                 bool auth = source.AuthLevel >= m.level && m.UActive(source.user.ID);
-                if (auth && source.IsGroup && !(m.groupAvailable && m.GActive(source.group.ID)))
+                if (auth && source.IsGroup && !(m.groupAvailable && m.GActive(source.group!.ID)))
                 {
                     auth = false;
                 }

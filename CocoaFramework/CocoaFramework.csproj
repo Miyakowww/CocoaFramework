@@ -9,6 +9,13 @@
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Miyakowww/CocoaFramework</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <Description>Use this project to develop QQ robots in a brand new way.</Description>
+    <Copyright>Copyright © Miyakowww 2020</Copyright>
+    <PackageProjectUrl>https://github.com/Miyakowww/CocoaFramework</PackageProjectUrl>
+    <PackageTags>mirai-api-http mirai</PackageTags>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

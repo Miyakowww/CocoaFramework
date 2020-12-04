@@ -1,4 +1,5 @@
-﻿using CocoaFramework.Model;
+﻿using CocoaFramework.Docking;
+using CocoaFramework.Model;
 using CocoaFramework.Support;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
@@ -15,7 +16,7 @@ namespace CocoaFramework.Core
 {
     internal static class BotCore
     {
-        public static async Task Init(MiraiHttpSession session, Assembly assembly)
+        public static async Task Init(MiraiHttpSession session, BotStartupConfig config)
         {
             BotAPI.Init(session);
 
@@ -23,9 +24,10 @@ namespace CocoaFramework.Core
             BotAuth.Init();
             await BotInfo.ReloadAll();
 
-            ModuleCore.Init(assembly);
-            ServiceCore.Init(assembly);
-            ComponentCore.Init(assembly);
+            MiddlewareCore.Init(config.Middlewares.ToArray());
+            ModuleCore.Init(config.assembly);
+            ServiceCore.Init(config.assembly);
+            ComponentCore.Init(config.assembly);
         }
 
         public static void Message(MessageSource source, QMessage msg)
@@ -43,7 +45,7 @@ namespace CocoaFramework.Core
             }
             catch (Exception e)
             {
-                string einfo = $"\n{DateTime.Now}\nMessage:{(source.IsGroup ? $"[{source.group.ID}]" : "")}[{source.user.ID}] {msg.PlainText}\n{e.StackTrace}\n{e.Message}";
+                string einfo = $"\n{DateTime.Now}\nMessage:{(source.IsGroup ? $"[{source.group!.ID}]" : "")}[{source.user.ID}] {msg.PlainText}\n{e.StackTrace}\n{e.Message}";
                 if (BotReg.GetBool("CORE/LOG_ERROR", true) && BotAuth.HasOwner)
                 {
                     _ = BotAPI.SendPrivateMessageAsync(BotAuth.Owner, new PlainMessage(einfo));
