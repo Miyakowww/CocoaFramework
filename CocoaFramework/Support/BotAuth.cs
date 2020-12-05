@@ -19,14 +19,9 @@ namespace CocoaFramework.Support
         }
 
         public static bool HasOwner => Owner != 0;
-        public static bool IsOwner(long qq)
-        {
-            return Owner == qq;
-        }
-        public static bool IsAdmin(long qq)
-        {
-            return IsOwner(qq) || Admin.Contains(qq);
-        }
+        public static bool IsOwner(long qq) => Owner == qq;
+        public static bool IsAdmin(long qq) => IsOwner(qq) || Admin.Contains(qq);
+
         public static int AuthLevel(long qq)
         {
             if (IsOwner(qq))

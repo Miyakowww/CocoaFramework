@@ -32,23 +32,30 @@ namespace CocoaFramework.Docking
             }
             catch
             {
+                connecting = false;
                 return false;
             }
             if (session.Connected)
             {
                 session.AddPlugin(new MainPlugin());
                 await BotCore.Init(session, config);
+                connecting = false;
                 return true;
             }
             else
             {
+                connecting = false;
                 return false;
             }
         }
 
-        public static ValueTask Dispose()
+        public static async ValueTask Dispose()
         {
-            return session.DisposeAsync();
+            while (connecting)
+            {
+                await Task.Delay(10);
+            }
+            await session.DisposeAsync();
         }
     }
 

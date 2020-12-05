@@ -19,14 +19,17 @@ namespace CocoaFramework.Support
             _ = DataManager.SaveData("BotReg", data);
         }
 
-        public static bool Contains(string key) => data.ContainsKey(key);
-        public static string[] GetKeys() => data.Keys.ToArray();
-        public static string[] GetKeys(string path) => data.Keys.Where(k => k.StartsWith(path)).Select(k => k[path.Length..]).ToArray();
+        public static bool Contains(string key)
+            => data.ContainsKey(key);
+        public static string[] GetKeys()
+            => data.Keys.ToArray();
+        public static string[] GetKeys(string path)
+            => data.Keys
+            .Where(k => k.StartsWith(path))
+            .Select(k => k[path.Length..])
+            .ToArray();
 
-        public static string GetString(string key)
-        {
-            return GetString(key, "");
-        }
+        public static string GetString(string key) => GetString(key, "");
         public static string GetString(string key, string defaultVal)
         {
             if (data.ContainsKey(key))
@@ -51,10 +54,7 @@ namespace CocoaFramework.Support
             SaveData();
         }
 
-        public static int GetInt(string key)
-        {
-            return GetInt(key, 0);
-        }
+        public static int GetInt(string key) => GetInt(key, 0);
         public static int GetInt(string key, int defaultVal)
         {
             if (data.ContainsKey(key))
@@ -86,10 +86,7 @@ namespace CocoaFramework.Support
             SaveData();
         }
 
-        public static long GetLong(string key)
-        {
-            return GetLong(key, 0);
-        }
+        public static long GetLong(string key) => GetLong(key, 0);
         public static long GetLong(string key, long defaultVal)
         {
             if (data.ContainsKey(key))
@@ -121,10 +118,7 @@ namespace CocoaFramework.Support
             SaveData();
         }
 
-        public static float GetFloat(string key)
-        {
-            return GetFloat(key, 0);
-        }
+        public static float GetFloat(string key) => GetFloat(key, 0);
         public static float GetFloat(string key, float defaultVal)
         {
             if (data.ContainsKey(key))
@@ -156,10 +150,7 @@ namespace CocoaFramework.Support
             SaveData();
         }
 
-        public static bool GetBool(string key)
-        {
-            return GetBool(key, false);
-        }
+        public static bool GetBool(string key) => GetBool(key, false);
         public static bool GetBool(string key, bool defaultVal)
         {
             if (data.ContainsKey(key))

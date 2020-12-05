@@ -34,28 +34,28 @@ namespace CocoaFramework.Core.ProcessingModel
             this.root = root;
         }
 
-        public LockStatus Run(MessageSource? src, QMessage? msg)
+        public LockState Run(MessageSource? src, QMessage? msg)
         {
             if (finished)
             {
-                return LockStatus.Continue;
+                return LockState.Continue;
             }
             if (src is not null && !target.Fit(src))
             {
-                return LockStatus.Continue;
+                return LockState.Continue;
             }
             running = true;
             if (child is not null)
             {
-                LockStatus status = child.Run(src, msg);
-                if (status == LockStatus.Finished)
+                LockState state = child.Run(src, msg);
+                if (state == LockState.Finished)
                 {
                     child = null;
                 }
                 else
                 {
                     running = false;
-                    return status;
+                    return state;
                 }
             }
             if (receiver is not null)
@@ -69,9 +69,9 @@ namespace CocoaFramework.Core.ProcessingModel
                 if (proc.Current is MessageReceiver rec)
                 {
                     receiver = rec;
-                    LockStatus status = Run(src, msg);
+                    LockState state = Run(src, msg);
                     running = false;
-                    return status;
+                    return state;
                 }
                 if (proc.Current is ListeningTarget tgt)
                 {
@@ -80,31 +80,31 @@ namespace CocoaFramework.Core.ProcessingModel
                 if (proc.Current is TimeSpan tout)
                 {
                     timeout = tout;
-                    LockStatus status = Run(src, msg);
+                    LockState state = Run(src, msg);
                     running = false;
-                    return status;
+                    return state;
                 }
                 if (proc.Current is NotFit)
                 {
                     running = false;
-                    return LockStatus.Continue;
+                    return LockState.Continue;
                 }
                 if (proc.Current is IEnumerator subm)
                 {
                     Meeting m = new Meeting(target, subm, root);
-                    LockStatus status = m.Run(src, msg);
-                    if (status != LockStatus.Finished)
+                    LockState state = m.Run(src, msg);
+                    if (state != LockState.Finished)
                     {
                         counter++;
                         child = m;
                         running = false;
-                        return status;
+                        return state;
                     }
                     else
                     {
-                        status = Run(src, msg);
+                        state = Run(src, msg);
                         running = false;
-                        return status;
+                        return state;
                     }
                 }
                 counter++;
@@ -122,14 +122,14 @@ namespace CocoaFramework.Core.ProcessingModel
                     }).Start();
                 }
                 running = false;
-                return LockStatus.NotFinished;
+                return LockState.NotFinished;
             }
             else
             {
                 counter++;
                 running = false;
                 finished = true;
-                return LockStatus.Finished;
+                return LockState.Finished;
             }
         }
 
@@ -140,7 +140,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 return;
             }
             Meeting m = new Meeting(ListeningTarget.FromTarget(src)!, proc);
-            if (m.Run(src, null) != LockStatus.Finished)
+            if (m.Run(src, null) != LockState.Finished)
             {
                 ModuleCore.AddLock(m.Run);
             }

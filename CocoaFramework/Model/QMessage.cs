@@ -38,11 +38,14 @@ namespace CocoaFramework.Model
         }
 
         public T[] GetMessages<T>()
-        {
-            return chain.Where(m => m is T).Select(m => (T)m).ToArray();
-        }
+            => chain
+            .Where(m => m is T)
+            .Select(m => (T)m)
+            .ToArray();
 
-        public override string ToString() => PlainText;
-        public static implicit operator string(QMessage msg) => msg.PlainText;
+        public override string ToString()
+            => PlainText;
+        public static implicit operator string(QMessage msg)
+            => msg.PlainText;
     }
 }

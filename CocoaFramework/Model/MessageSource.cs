@@ -36,23 +36,22 @@ namespace CocoaFramework.Model
             user = new(qid);
         }
 
-        public override bool Equals(object? obj) => obj is MessageSource src
+        public override bool Equals(object? obj)
+            => obj is MessageSource src
             && src.IsGroup == IsGroup
             && src.IsTemp == IsTemp
             && src.group?.ID == group?.ID
             && src.user.ID == user.ID;
-        public override int GetHashCode() => (IsGroup || IsTemp) ?
+        public override int GetHashCode()
+            => (IsGroup || IsTemp) ?
             group!.ID.GetHashCode() ^ user.ID.GetHashCode() :
             user.ID.GetHashCode();
 
         public int Send(string message)
-        {
-            return SendAsync(new PlainMessage(message)).Result;
-        }
+            => SendAsync(new PlainMessage(message)).Result;
         public int Send(params IMessageBase[] chain)
-        {
-            return SendAsync(chain).Result;
-        }
+            => SendAsync(chain).Result;
+
         public Task<int> SendAsync(string message)
         {
             if (IsGroup)
@@ -85,17 +84,14 @@ namespace CocoaFramework.Model
         }
 
         public int SendEx(bool addAtWhenGroup, string groupDelimiter, string message)
-        {
-            return SendExAsync(addAtWhenGroup, groupDelimiter, new PlainMessage(message)).Result;
-        }
+            => SendExAsync(addAtWhenGroup, groupDelimiter, new PlainMessage(message)).Result;
+
         public int SendEx(bool addAtWhenGroup, string groupDelimiter, params IMessageBase[] chain)
-        {
-            return SendExAsync(addAtWhenGroup, groupDelimiter, chain).Result;
-        }
+            => SendExAsync(addAtWhenGroup, groupDelimiter, chain).Result;
+
         public Task<int> SendExAsync(bool addAtWhenGroup, string groupDelimiter, string message)
-        {
-            return SendExAsync(addAtWhenGroup, groupDelimiter, new PlainMessage(message));
-        }
+            => SendExAsync(addAtWhenGroup, groupDelimiter, new PlainMessage(message));
+
         public Task<int> SendExAsync(bool addAtWhenGroup, string groupDelimiter, params IMessageBase[] chain)
         {
             if (IsGroup)
@@ -119,18 +115,16 @@ namespace CocoaFramework.Model
             }
         }
 
+
         public int SendReplyEx(QMessage quote, bool addAtWhenGroup, string message)
-        {
-            return SendReplyExAsync(quote, addAtWhenGroup, new PlainMessage(message)).Result;
-        }
+            => SendReplyExAsync(quote, addAtWhenGroup, new PlainMessage(message)).Result;
+
         public int SendReplyEx(QMessage quote, bool addAtWhenGroup, params IMessageBase[] chain)
-        {
-            return SendReplyExAsync(quote, addAtWhenGroup, chain).Result;
-        }
+            => SendReplyExAsync(quote, addAtWhenGroup, chain).Result;
+
         public Task<int> SendReplyExAsync(QMessage quote, bool addAtWhenGroup, string message)
-        {
-            return SendReplyExAsync(quote, addAtWhenGroup, new PlainMessage(message));
-        }
+            => SendReplyExAsync(quote, addAtWhenGroup, new PlainMessage(message));
+
         public Task<int> SendReplyExAsync(QMessage quote, bool addAtWhenGroup, params IMessageBase[] chain)
         {
             if (IsGroup)
@@ -154,18 +148,16 @@ namespace CocoaFramework.Model
             }
         }
 
+
         public int SendPrivate(string message)
-        {
-            return SendPrivateAsync(new PlainMessage(message)).Result;
-        }
+            => SendPrivateAsync(new PlainMessage(message)).Result;
+
         public int SendPrivate(params IMessageBase[] chain)
-        {
-            return SendPrivateAsync(chain).Result;
-        }
+            => SendPrivateAsync(chain).Result;
+
         public Task<int> SendPrivateAsync(string message)
-        {
-            return SendPrivateAsync(new PlainMessage(message));
-        }
+            => SendPrivateAsync(new PlainMessage(message));
+
         public Task<int> SendPrivateAsync(params IMessageBase[] chain)
         {
             if (IsTemp || !user.IsFriend)

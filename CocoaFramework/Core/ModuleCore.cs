@@ -18,7 +18,7 @@ namespace CocoaFramework.Core
     {
         public static ImmutableArray<BotModuleBase> Modules { get; private set; }
         private static readonly Dictionary<BotModuleBase, List<RegexRouteInfo>> routes = new();
-        private static readonly List<Func<MessageSource, QMessage, LockStatus>> locks = new();
+        private static readonly List<Func<MessageSource, QMessage, LockState>> locks = new();
 
         [Obsolete("请不要手动进行初始化")]
         public static void Init(Assembly assembly)
@@ -55,12 +55,12 @@ namespace CocoaFramework.Core
                             foreach (var method in methods)
                             {
                                 d = method.GetCustomAttribute<DisabledAttribute>();
-                                if (d != null)
+                                if (d is not null)
                                 {
                                     continue;
                                 }
                                 RegexRouteAttribute[] rs = method.GetCustomAttributes<RegexRouteAttribute>().ToArray();
-                                if (rs != null && rs.Length > 0)
+                                if (rs is not null && rs.Length > 0)
                                 {
                                     Regex[] regexs = new Regex[rs.Length];
                                     for (int i = 0; i < rs.Length; i++)
@@ -89,12 +89,12 @@ namespace CocoaFramework.Core
             // Lock Run
             for (int i = locks.Count - 1; i >= 0; i--)
             {
-                LockStatus status = locks[i](source, msg);
-                if (status.Check(0b10))
+                LockState state = locks[i](source, msg);
+                if (state.Check(0b10))
                 {
                     locks.RemoveAt(i);
                 }
-                if (status.Check(0b01))
+                if (state.Check(0b01))
                 {
                     return -2;
                 }
@@ -145,58 +145,49 @@ namespace CocoaFramework.Core
             return -1;
         }
 
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun)
-        {
-            locks.Add(lockRun);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, Func<MessageSource, bool> predicate)
-        {
-            locks.Add(new MessageLock(lockRun, predicate, TimeSpan.Zero, null).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, ListeningTarget target)
-        {
-            locks.Add(new MessageLock(lockRun, target.Fit, TimeSpan.Zero, null).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, MessageSource source)
-        {
-            locks.Add(new MessageLock(lockRun, s => s.Equals(source), TimeSpan.Zero, null).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout)
-        {
-            locks.Add(new MessageLock(lockRun, predicate, timeout, null).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, ListeningTarget target, TimeSpan timeout)
-        {
-            locks.Add(new MessageLock(lockRun, target.Fit, timeout, null).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, MessageSource source, TimeSpan timeout)
-        {
-            locks.Add(new MessageLock(lockRun, s => s.Equals(source), timeout, null).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout, Action onTimeout)
-        {
-            locks.Add(new MessageLock(lockRun, predicate, timeout, onTimeout).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, ListeningTarget target, TimeSpan timeout, Action onTimeout)
-        {
-            locks.Add(new MessageLock(lockRun, target.Fit, timeout, onTimeout).Run);
-        }
-        public static void AddLock(Func<MessageSource, QMessage, LockStatus> lockRun, MessageSource source, TimeSpan timeout, Action onTimeout)
-        {
-            locks.Add(new MessageLock(lockRun, s => s.Equals(source), timeout, onTimeout).Run);
-        }
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun)
+            => locks.Add(lockRun);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate)
+            => locks.Add(new MessageLock(lockRun, predicate, TimeSpan.Zero, null).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target)
+            => locks.Add(new MessageLock(lockRun, target.Fit, TimeSpan.Zero, null).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource source)
+            => locks.Add(new MessageLock(lockRun, s => s.Equals(source), TimeSpan.Zero, null).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout)
+            => locks.Add(new MessageLock(lockRun, predicate, timeout, null).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout)
+            => locks.Add(new MessageLock(lockRun, target.Fit, timeout, null).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource source, TimeSpan timeout)
+            => locks.Add(new MessageLock(lockRun, s => s.Equals(source), timeout, null).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout, Action onTimeout)
+            => locks.Add(new MessageLock(lockRun, predicate, timeout, onTimeout).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout, Action onTimeout)
+            => locks.Add(new MessageLock(lockRun, target.Fit, timeout, onTimeout).Run);
+
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource source, TimeSpan timeout, Action onTimeout)
+            => locks.Add(new MessageLock(lockRun, s => s.Equals(source), timeout, onTimeout).Run);
+
 
         private class MessageLock
         {
             public readonly Func<MessageSource, bool> predicate;
-            public readonly Func<MessageSource, QMessage, LockStatus> run;
+            public readonly Func<MessageSource, QMessage, LockState> run;
             private readonly TimeSpan timeout;
             private readonly Action? onTimeout;
             private int counter = 0;
             private DateTime lastRun;
             private bool running = false;
 
-            public MessageLock(Func<MessageSource, QMessage, LockStatus> run, Func<MessageSource, bool> predicate, TimeSpan timeout, Action? onTimeout)
+            public MessageLock(Func<MessageSource, QMessage, LockState> run, Func<MessageSource, bool> predicate, TimeSpan timeout, Action? onTimeout)
             {
                 this.predicate = predicate;
                 this.run = run;
@@ -218,21 +209,21 @@ namespace CocoaFramework.Core
                 }
             }
 
-            public LockStatus Run(MessageSource src, QMessage msg)
+            public LockState Run(MessageSource src, QMessage msg)
             {
                 if (timeout > TimeSpan.Zero && DateTime.Now - lastRun > timeout)
                 {
-                    return LockStatus.Continue;
+                    return LockState.Continue;
                 }
                 running = true;
                 if (predicate(src))
                 {
-                    LockStatus status = run(src, msg);
-                    if (status.Check(0b10))
+                    LockState state = run(src, msg);
+                    if (state.Check(0b10))
                     {
                         counter++;
                     }
-                    else if (status.Check(0b01))
+                    else if (state.Check(0b01))
                     {
                         lastRun = DateTime.Now;
                         counter++;
@@ -252,19 +243,19 @@ namespace CocoaFramework.Core
                         }
                     }
                     running = false;
-                    return status;
+                    return state;
                 }
                 else
                 {
                     running = false;
-                    return LockStatus.Continue;
+                    return LockState.Continue;
                 }
             }
         }
 
-        private static bool Check(this LockStatus status, int flag)
+        private static bool Check(this LockState state, int flag)
         {
-            return ((int)status & flag) != 0;
+            return ((int)state & flag) != 0;
         }
 
         private class RegexRouteInfo
@@ -411,7 +402,7 @@ namespace CocoaFramework.Core
         private readonly List<FieldInfo> fields = new();
         private string? TypeName;
 
-        public bool ActivityOverrode => GetType().GetMethod("Active", new Type[] { typeof(Group) })?.DeclaringType != typeof(BotModuleBase);
+        public bool ActivityOverrode => GetType().GetMethod("GActive", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
 
         public void InitData()
         {
@@ -541,16 +532,12 @@ namespace CocoaFramework.Core
         public virtual void Init() { }
         public virtual bool Run(MessageSource source, QMessage msg) { return false; }
         public virtual bool GActive(long groupID)
-        {
-            return ModuleData!.ActiveGroup.Contains(groupID);
-        }
+            => ModuleData!.ActiveGroup.Contains(groupID);
         public bool UActive(long userID)
-        {
-            return !ModuleData!.BanUser.Contains(userID);
-        }
+            => !ModuleData!.BanUser.Contains(userID);
     }
 
-    public enum LockStatus
+    public enum LockState
     {
         Finished = 0b11,
         NotFinished = 0b01,

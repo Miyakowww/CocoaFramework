@@ -52,9 +52,19 @@ namespace CocoaFramework.Support
             }
         }
 
-        public static bool HasGroup(long id) => relationship.ContainsKey(id);
-        public static bool HasGroupMember(long groupID, long memberID) => relationship.ContainsKey(groupID) && relationship[groupID].Contains(memberID);
-        public static bool HasFriend(long id) => friends.Contains(id);
-        public static long[] GetTempPath(long id) => relationship.Where(p => p.Value.Contains(id)).Select(p => p.Key).ToArray();
+        public static bool HasGroup(long id)
+            => relationship.ContainsKey(id);
+
+        public static bool HasGroupMember(long groupID, long memberID)
+            => relationship.ContainsKey(groupID) && relationship[groupID].Contains(memberID);
+
+        public static bool HasFriend(long id)
+            => friends.Contains(id);
+
+        public static long[] GetTempPath(long id)
+            => relationship
+            .Where(p => p.Value.Contains(id))
+            .Select(p => p.Key)
+            .ToArray();
     }
 }

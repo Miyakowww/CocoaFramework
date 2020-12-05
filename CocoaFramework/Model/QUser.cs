@@ -16,8 +16,10 @@ namespace CocoaFramework.Model
             ID = id;
         }
 
-        public override bool Equals(object? obj) => obj is QUser user && user.ID == ID;
-        public override int GetHashCode() => ID.GetHashCode();
+        public override bool Equals(object? obj)
+            => obj is QUser user && user.ID == ID;
+        public override int GetHashCode()
+            => ID.GetHashCode();
 
         public bool IsFriend => BotInfo.HasFriend(ID);
         public bool IsOwner => BotAuth.IsOwner(ID);
@@ -25,20 +27,15 @@ namespace CocoaFramework.Model
         public int AuthLevel => BotAuth.AuthLevel(ID);
 
         public int SendMessage(string message)
-        {
-            return SendMessageAsync(message).Result;
-        }
+            => SendMessageAsync(message).Result;
+
         public int SendMessage(params IMessageBase[] chain)
-        {
-            return SendMessageAsync(chain).Result;
-        }
+            => SendMessageAsync(chain).Result;
+
         public Task<int> SendMessageAsync(string message)
-        {
-            return BotAPI.SendPrivateMessageAsync(ID, new PlainMessage(message));
-        }
+            => BotAPI.SendPrivateMessageAsync(ID, new PlainMessage(message));
+
         public Task<int> SendMessageAsync(params IMessageBase[] chain)
-        {
-            return BotAPI.SendPrivateMessageAsync(ID, chain);
-        }
+            => BotAPI.SendPrivateMessageAsync(ID, chain);
     }
 }
