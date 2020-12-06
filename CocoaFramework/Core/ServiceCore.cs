@@ -43,11 +43,11 @@ namespace CocoaFramework.Core
         }
 
         [Obsolete("请不要手动调用此方法")]
-        public static void Run(MessageSource source, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
+        public static void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
         {
             foreach (var s in Services)
             {
-                s.Run(source, msg, origMsg, processed, processModule);
+                s.Run(src, msg, origMsg, processed, processModule);
             }
         }
     }
@@ -55,6 +55,6 @@ namespace CocoaFramework.Core
     public abstract class BotServiceBase
     {
         public virtual void Init() { }
-        public virtual void Run(MessageSource source, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule) { }
+        public abstract void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule);
     }
 }

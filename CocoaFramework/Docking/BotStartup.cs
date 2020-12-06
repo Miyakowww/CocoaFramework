@@ -17,7 +17,7 @@ namespace CocoaFramework.Docking
 
         public static async Task<bool> Start(BotStartupConfig config)
         {
-            if (connecting)
+            if (connecting || session.Connected)
             {
                 return false;
             }

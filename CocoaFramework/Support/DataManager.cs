@@ -8,8 +8,8 @@ namespace CocoaFramework.Support
 {
     public static class DataManager
     {
-        private static readonly List<string> needSave = new List<string>();
-        private static readonly List<string> saving = new List<string>();
+        private static readonly List<string> needSave = new();
+        private static readonly List<string> saving = new();
 
         public static readonly string dataPath = AppDomain.CurrentDomain.BaseDirectory + @"\data\";
 

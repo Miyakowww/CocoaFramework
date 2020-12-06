@@ -13,8 +13,8 @@ namespace CocoaFramework.Model
         public readonly QGroup? group;
         public readonly QUser user;
 
-        public readonly bool IsGroup;
-        public readonly bool IsTemp;
+        public bool IsGroup { get; }
+        public bool IsTemp { get; }
 
         public bool IsFriend => user.IsFriend;
         public bool IsOwner => user.IsOwner;

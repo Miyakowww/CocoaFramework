@@ -12,10 +12,10 @@ namespace CocoaFramework.Core.ProcessingModel
         public QGroup? group;
         public QUser? user;
 
-        public bool Fit(MessageSource source)
+        public bool Fit(MessageSource src)
         {
-            bool gFit = group is null || group.ID == source?.group?.ID;
-            bool uFit = user is null || user.ID == source?.user?.ID;
+            bool gFit = group is null || group.ID == src?.group?.ID;
+            bool uFit = user is null || user.ID == src?.user?.ID;
             return gFit && uFit;
         }
 
@@ -54,13 +54,13 @@ namespace CocoaFramework.Core.ProcessingModel
         {
             return new ListeningTarget(new QGroup(group), new QUser(user));
         }
-        public static ListeningTarget? FromTarget(MessageSource source)
+        public static ListeningTarget? FromTarget(MessageSource src)
         {
-            if (source is null)
+            if (src is null)
             {
                 return null;
             }
-            return new ListeningTarget(source?.group, source?.user);
+            return new ListeningTarget(src?.group, src?.user);
         }
         public static ListeningTarget? FromTarget(QGroup group, QUser user)
         {

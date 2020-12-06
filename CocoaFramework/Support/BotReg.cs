@@ -9,6 +9,7 @@ namespace CocoaFramework.Support
     {
         private static Dictionary<string, string> data = new();
 
+        [Obsolete("请不要手动进行初始化")]
         public static void Init()
         {
             data = DataManager.LoadData<Dictionary<string, string>>("BotReg").Result ?? data;
@@ -138,6 +139,38 @@ namespace CocoaFramework.Support
             }
         }
         public static void SetFloat(string key, float val)
+        {
+            if (data.ContainsKey(key))
+            {
+                data[key] = val.ToString();
+            }
+            else
+            {
+                data.Add(key, val.ToString());
+            }
+            SaveData();
+        }
+
+        public static double GetDouble(string key) => GetDouble(key, 0);
+        public static double GetDouble(string key, double defaultVal)
+        {
+            if (data.ContainsKey(key))
+            {
+                if (double.TryParse(data[key], out double val))
+                {
+                    return val;
+                }
+                else
+                {
+                    return defaultVal;
+                }
+            }
+            else
+            {
+                return defaultVal;
+            }
+        }
+        public static void SetDouble(string key, double val)
         {
             if (data.ContainsKey(key))
             {

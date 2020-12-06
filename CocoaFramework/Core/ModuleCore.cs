@@ -84,12 +84,12 @@ namespace CocoaFramework.Core
         /// 0+: moduleID
         /// </summary>
         [Obsolete("请不要手动调用此方法")]
-        public static int Run(MessageSource source, QMessage msg)
+        public static int Run(MessageSource src, QMessage msg)
         {
             // Lock Run
             for (int i = locks.Count - 1; i >= 0; i--)
             {
-                LockState state = locks[i](source, msg);
+                LockState state = locks[i](src, msg);
                 if (state.Check(0b10))
                 {
                     locks.RemoveAt(i);
@@ -108,12 +108,12 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                bool auth = source.AuthLevel >= m.level && m.UActive(source.user.ID);
-                if (auth && source.IsGroup && !(m.groupAvailable && m.GActive(source.group!.ID)))
+                bool auth = src.AuthLevel >= m.level && m.UActive(src.user.ID);
+                if (auth && src.IsGroup && !(m.groupAvailable && m.GActive(src.group!.ID)))
                 {
                     auth = false;
                 }
-                if (auth && !source.IsGroup && !m.privateAvailable)
+                if (auth && !src.IsGroup && !m.privateAvailable)
                 {
                     auth = false;
                 }
@@ -123,13 +123,13 @@ namespace CocoaFramework.Core
                     {
                         foreach (var r in routes[m])
                         {
-                            if (r.Run(source, msg))
+                            if (r.Run(src, msg))
                             {
                                 m.AddUsage();
                                 return i;
                             }
                         }
-                        bool stat = m.Run(source, msg);
+                        bool stat = m.Run(src, msg);
                         if (stat)
                         {
                             m.AddUsage();
@@ -155,8 +155,8 @@ namespace CocoaFramework.Core
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target)
             => locks.Add(new MessageLock(lockRun, target.Fit, TimeSpan.Zero, null).Run);
 
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource source)
-            => locks.Add(new MessageLock(lockRun, s => s.Equals(source), TimeSpan.Zero, null).Run);
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src)
+            => locks.Add(new MessageLock(lockRun, s => s.Equals(src), TimeSpan.Zero, null).Run);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout)
             => locks.Add(new MessageLock(lockRun, predicate, timeout, null).Run);
@@ -164,8 +164,8 @@ namespace CocoaFramework.Core
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout)
             => locks.Add(new MessageLock(lockRun, target.Fit, timeout, null).Run);
 
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource source, TimeSpan timeout)
-            => locks.Add(new MessageLock(lockRun, s => s.Equals(source), timeout, null).Run);
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src, TimeSpan timeout)
+            => locks.Add(new MessageLock(lockRun, s => s.Equals(src), timeout, null).Run);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout, Action onTimeout)
             => locks.Add(new MessageLock(lockRun, predicate, timeout, onTimeout).Run);
@@ -173,8 +173,8 @@ namespace CocoaFramework.Core
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout, Action onTimeout)
             => locks.Add(new MessageLock(lockRun, target.Fit, timeout, onTimeout).Run);
 
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource source, TimeSpan timeout, Action onTimeout)
-            => locks.Add(new MessageLock(lockRun, s => s.Equals(source), timeout, onTimeout).Run);
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src, TimeSpan timeout, Action onTimeout)
+            => locks.Add(new MessageLock(lockRun, s => s.Equals(src), timeout, onTimeout).Run);
 
 
         private class MessageLock
@@ -397,7 +397,7 @@ namespace CocoaFramework.Core
             }
         }
 
-        public BotModuleData? ModuleData;
+        public BotModuleData? ModuleData { get; set; }
 
         private readonly List<FieldInfo> fields = new();
         private string? TypeName;
@@ -530,7 +530,7 @@ namespace CocoaFramework.Core
         }
 
         public virtual void Init() { }
-        public virtual bool Run(MessageSource source, QMessage msg) { return false; }
+        public virtual bool Run(MessageSource src, QMessage msg) { return false; }
         public virtual bool GActive(long groupID)
             => ModuleData!.ActiveGroup.Contains(groupID);
         public bool UActive(long userID)

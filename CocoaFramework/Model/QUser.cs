@@ -9,7 +9,7 @@ namespace CocoaFramework.Model
 {
     public class QUser
     {
-        public readonly long ID;
+        public long ID { get; }
 
         public QUser(long id)
         {

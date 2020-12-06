@@ -10,9 +10,9 @@ namespace CocoaFramework.Model
     public class QMessage
     {
         public readonly ImmutableArray<IMessageBase> chain;
-        public readonly int ID;
-        public readonly DateTime Time;
-        public readonly string PlainText;
+        public int ID { get; }
+        public DateTime Time { get; }
+        public string PlainText { get; }
 
         public QMessage(IMessageBase[] _chain)
         {

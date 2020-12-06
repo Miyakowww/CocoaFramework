@@ -30,22 +30,22 @@ namespace CocoaFramework.Core
             ComponentCore.Init(config.assembly);
         }
 
-        public static void Message(MessageSource source, QMessage msg)
+        public static void Message(MessageSource src, QMessage msg)
         {
             try
             {
                 QMessage newMsg = msg;
 
-                bool release = MiddlewareCore.Run(ref source, ref newMsg);
+                bool release = MiddlewareCore.Run(ref src, ref newMsg);
                 if (release)
                 {
-                    int stat = ModuleCore.Run(source, newMsg);
-                    ServiceCore.Run(source, newMsg, msg, stat != -1, stat >= 0 ? ModuleCore.Modules[stat] : null);
+                    int stat = ModuleCore.Run(src, newMsg);
+                    ServiceCore.Run(src, newMsg, msg, stat != -1, stat >= 0 ? ModuleCore.Modules[stat] : null);
                 }
             }
             catch (Exception e)
             {
-                string einfo = $"\n{DateTime.Now}\nMessage:{(source.IsGroup ? $"[{source.group!.ID}]" : "")}[{source.user.ID}] {msg.PlainText}\n{e.StackTrace}\n{e.Message}";
+                string einfo = $"\n{DateTime.Now}\nMessage:{(src.IsGroup ? $"[{src.group!.ID}]" : "")}[{src.user.ID}] {msg.PlainText}\n{e.StackTrace}\n{e.Message}";
                 if (BotReg.GetBool("CORE/LOG_ERROR", true) && BotAuth.HasOwner)
                 {
                     _ = BotAPI.SendPrivateMessageAsync(BotAuth.Owner, new PlainMessage(einfo));

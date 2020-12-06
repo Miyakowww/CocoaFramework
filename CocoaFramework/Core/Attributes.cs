@@ -23,11 +23,11 @@ namespace CocoaFramework.Core
         public bool showOnModuleList;
         public int processLevel;
         public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable)
-            : this(name, level, privateAvailable, groupAvailable, groupAvailable, 0) { }
+            : this(name, level, privateAvailable, groupAvailable, true, 0) { }
         public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable, bool showOnModuleList)
             : this(name, level, privateAvailable, groupAvailable, showOnModuleList, 0) { }
         public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable, int processLevel)
-            : this(name, level, privateAvailable, groupAvailable, groupAvailable, processLevel) { }
+            : this(name, level, privateAvailable, groupAvailable, true, processLevel) { }
         public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable, bool showOnModuleList, int processLevel)
         {
             this.name = name;

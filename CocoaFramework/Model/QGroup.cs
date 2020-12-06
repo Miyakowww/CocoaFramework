@@ -10,7 +10,7 @@ namespace CocoaFramework.Model
 {
     public class QGroup
     {
-        public readonly long ID;
+        public long ID { get; }
 
         public QGroup(long id)
         {

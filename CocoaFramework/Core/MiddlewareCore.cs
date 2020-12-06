@@ -24,11 +24,11 @@ namespace CocoaFramework.Core
         }
 
         [Obsolete("请不要手动调用此方法")]
-        public static bool Run(ref MessageSource source, ref QMessage msg)
+        public static bool Run(ref MessageSource src, ref QMessage msg)
         {
             foreach (var m in Middlewares)
             {
-                bool ctn = m.Run(ref source, ref msg);
+                bool ctn = m.Run(ref src, ref msg);
                 if (!ctn)
                 {
                     return false;
@@ -41,6 +41,6 @@ namespace CocoaFramework.Core
     public abstract class BotMiddlewareBase
     {
         public virtual void Init() { }
-        public abstract bool Run(ref MessageSource source, ref QMessage msg);
+        public abstract bool Run(ref MessageSource src, ref QMessage msg);
     }
 }
