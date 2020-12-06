@@ -15,7 +15,7 @@
 <br>
 
 ## BotModuleAttribute
-添加了本特性并继承于 BotModuleBase 的类会被 Cocoa Framework 视作 Module
+添加了本特性并继承于 BotModuleBase 的类会被 Cocoa Framework 视作 Module。类名建议以大写 M 字母开头
 - 参数
     - name：模块名
     - level：所需的最低权限等级
@@ -43,6 +43,7 @@ Module 的基类
     - ModuleData：模块数据
 
 - 方法
+    - SaveData：保存对当前模块数据的所有更改
     - SetGroup：设置群的许可状态
     - SetUser：设置用户的许可状态
     - AddUsage：添加一次模块使用

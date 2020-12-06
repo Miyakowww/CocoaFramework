@@ -2,11 +2,11 @@
 
 ## BotStartup
 - BotStartup 提供 Start 和 Dispose 方法
-- Start 方法用于连接和初始化框架，异步，返回 bool 表示连接成功与否
+- Start 方法用于连接和初始化框架，异步返回 bool 表示连接成功与否
 ```CSharp
 public static async Task<bool> Start(BotStartupConfig config)
 ```
-- Dispose 方法用于释放资源，请注意，无论是否连接，连接成功与否，都需要在退出程序前调用此方法释放资源
+- Dispose 方法用于释放资源。请注意，无论是否连接、连接成功与否，都需要在退出程序前调用此方法释放资源
 ```CSharp
 public static async ValueTask Dispose()
 ```

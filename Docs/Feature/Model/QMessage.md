@@ -7,7 +7,7 @@
 ## 属性
 - ID：消息 ID
 - Time：消息时间
-- PlainText：消息中的纯文本，便于正则匹配。其中表情会被转换成/fxxx格式
+- PlainText：消息中的纯文本，便于正则匹配（请参阅 [RegexRoute](../Framework/ModuleFeature/RegexRoute.md)）。其中表情会被转换成/fxxx格式
 
 <br>
 

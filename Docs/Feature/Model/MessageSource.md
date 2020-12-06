@@ -15,7 +15,7 @@
 <br>
 
 ## 字段
-- group：QQ 群，可能为空
+- group：QQ 群，如果来源为私聊，本字段为 null
 - user：QQ 用户
 
 <br>

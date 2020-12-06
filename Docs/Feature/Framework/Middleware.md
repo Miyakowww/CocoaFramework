@@ -17,7 +17,7 @@ Middleware 需继承于 BotMiddlewareBase，且需要在启动前添加进 BotSt
 <br>
 
 ## Init
-如果重载此方法，便会在框架初始化时被调用，可以用于初始化
+此方法会在框架初始化时被调用，重载此方法可用于初始化
 
 <br>
 
