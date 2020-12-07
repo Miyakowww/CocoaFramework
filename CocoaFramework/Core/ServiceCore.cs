@@ -20,23 +20,25 @@ namespace CocoaFramework.Core
             Type[] types = assembly.GetTypes();
             foreach (var t in types)
             {
-                if (t.BaseType == typeof(BotServiceBase))
+                if (!t.GetTypeInfo().IsInstanceOfType(typeof(BotServiceBase)))
                 {
-                    DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
-                    if (d is not null)
-                    {
-                        continue;
-                    }
-                    BotServiceAttribute? s = t.GetCustomAttribute<BotServiceAttribute>();
-                    if (s is not null)
-                    {
-                        BotServiceBase? service = Activator.CreateInstance(t) as BotServiceBase;
-                        if (service is not null)
-                        {
-                            service.Init();
-                            services.Add(service);
-                        }
-                    }
+                    continue;
+                }
+                DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
+                if (d is not null)
+                {
+                    continue;
+                }
+                BotServiceAttribute? s = t.GetCustomAttribute<BotServiceAttribute>();
+                if (s is null)
+                {
+                    continue;
+                }
+                BotServiceBase? service = Activator.CreateInstance(t) as BotServiceBase;
+                if (service is not null)
+                {
+                    service.Init();
+                    services.Add(service);
                 }
             }
             Services = ImmutableArray.Create(services.ToArray());

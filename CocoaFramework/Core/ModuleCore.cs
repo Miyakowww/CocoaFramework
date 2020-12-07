@@ -27,50 +27,53 @@ namespace CocoaFramework.Core
             Type[] types = assembly.GetTypes();
             foreach (var t in types)
             {
-                if (t.BaseType == typeof(BotModuleBase))
+                if (!t.GetTypeInfo().IsInstanceOfType(typeof(BotModuleBase)))
                 {
-                    DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
+                    continue;
+                }
+                DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
+                if (d is not null)
+                {
+                    continue;
+                }
+                BotModuleAttribute? m = t.GetCustomAttribute<BotModuleAttribute>();
+                if (m is null)
+                {
+                    continue;
+                }
+                BotModuleBase? module = Activator.CreateInstance(t) as BotModuleBase;
+                if (module is null)
+                {
+                    continue;
+                }
+                module.name = m.name;
+                module.level = m.level;
+                module.privateAvailable = m.privateAvailable;
+                module.groupAvailable = m.groupAvailable;
+                module.showOnModuleList = m.showOnModuleList;
+                module.processLevel = m.processLevel;
+                module.InitData();
+                module.Init();
+                modules.Add(module);
+
+                routes.Add(module, new List<RegexRouteInfo>());
+                MethodInfo[] methods = module.GetType().GetMethods();
+                foreach (var method in methods)
+                {
+                    d = method.GetCustomAttribute<DisabledAttribute>();
                     if (d is not null)
                     {
                         continue;
                     }
-                    BotModuleAttribute? m = t.GetCustomAttribute<BotModuleAttribute>();
-                    if (m is not null)
+                    RegexRouteAttribute[] rs = method.GetCustomAttributes<RegexRouteAttribute>().ToArray();
+                    if (rs is not null && rs.Length > 0)
                     {
-                        BotModuleBase? module = Activator.CreateInstance(t) as BotModuleBase;
-                        if (module is not null)
+                        Regex[] regexs = new Regex[rs.Length];
+                        for (int i = 0; i < rs.Length; i++)
                         {
-                            module.name = m.name;
-                            module.level = m.level;
-                            module.privateAvailable = m.privateAvailable;
-                            module.groupAvailable = m.groupAvailable;
-                            module.showOnModuleList = m.showOnModuleList;
-                            module.processLevel = m.processLevel;
-                            module.InitData();
-                            module.Init();
-                            modules.Add(module);
-
-                            routes.Add(module, new List<RegexRouteInfo>());
-                            MethodInfo[] methods = module.GetType().GetMethods();
-                            foreach (var method in methods)
-                            {
-                                d = method.GetCustomAttribute<DisabledAttribute>();
-                                if (d is not null)
-                                {
-                                    continue;
-                                }
-                                RegexRouteAttribute[] rs = method.GetCustomAttributes<RegexRouteAttribute>().ToArray();
-                                if (rs is not null && rs.Length > 0)
-                                {
-                                    Regex[] regexs = new Regex[rs.Length];
-                                    for (int i = 0; i < rs.Length; i++)
-                                    {
-                                        regexs[i] = rs[i].regex;
-                                    }
-                                    routes[module].Add(new RegexRouteInfo(module, method, regexs));
-                                }
-                            }
+                            regexs[i] = rs[i].regex;
                         }
+                        routes[module].Add(new RegexRouteInfo(module, method, regexs));
                     }
                 }
             }

@@ -19,24 +19,27 @@ namespace CocoaFramework.Core
             Type[] types = assembly.GetTypes();
             foreach (var t in types)
             {
-                if (t.BaseType == typeof(BotComponentBase))
+                if (!t.GetTypeInfo().IsInstanceOfType(typeof(BotComponentBase)))
                 {
-                    DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
-                    if (d is not null)
-                    {
-                        continue;
-                    }
-                    BotComponentAttribute? s = t.GetCustomAttribute<BotComponentAttribute>();
-                    if (s is not null)
-                    {
-                        BotComponentBase? component = Activator.CreateInstance(t) as BotComponentBase;
-                        if (component is not null)
-                        {
-                            component.Init();
-                            components.Add(component);
-                        }
-                    }
+                    continue;
                 }
+                DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
+                if (d is not null)
+                {
+                    continue;
+                }
+                BotComponentAttribute? s = t.GetCustomAttribute<BotComponentAttribute>();
+                if (s is null)
+                {
+                    continue;
+                }
+                BotComponentBase? component = Activator.CreateInstance(t) as BotComponentBase;
+                if (component is not null)
+                {
+                    component.Init();
+                    components.Add(component);
+                }
+
             }
             Components = ImmutableArray.Create(components.ToArray());
         }
