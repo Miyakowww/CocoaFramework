@@ -12,13 +12,13 @@
 ---
 
 ## 在此之前我需要什么？
-你需要一个 .NET 开发环境用来实现你的机器人（不知道该怎么做？尝试一下 [这篇教程](./Docs/Preparation/SetupEnvironment.md)），一个安装了 mirai-api-http 插件的 mirai-console 用来接收与发送消息（不知道该怎么做？尝试一下 [这篇教程](./Docs/Preparation/SetupMirai.md)）和本框架。
+你需要一个 .NET 开发环境用来实现你的机器人（不知道该怎么做？尝试一下 [这篇教程](https://github.com/Miyakowww/CocoaFramework/blob/main/Docs/Preparation/SetupEnvironment.md)），一个安装了 mirai-api-http 插件的 mirai-console 用来接收与发送消息（不知道该怎么做？尝试一下 [这篇教程](https://github.com/Miyakowww/CocoaFramework/blob/main/Docs/Preparation/SetupMirai.md)）和本框架。
 
 ---
 
 ## 接下来我应该做什么？
-[这篇教程](./Docs/HelloWorld/index.md) 将引导你从零开始编写一个最简单的 QQ 机器人。<br>
-[这个文档](./Docs/Feature/index.md) 将介绍 Cocoa Framework 的基本概念和各种特性
+[这篇教程](https://github.com/Miyakowww/CocoaFramework/blob/main/Docs/HelloWorld/index.md) 将引导你从零开始编写一个最简单的 QQ 机器人。
+[这个文档](https://github.com/Miyakowww/CocoaFramework/blob/main/Docs/Feature/index.md) 将介绍 Cocoa Framework 的基本概念和各种特性
 
 ---
 
