@@ -77,5 +77,11 @@ namespace CocoaFramework.Docking
             this.qqID = qqID;
             assembly = Assembly.GetEntryAssembly()!;
         }
+
+        public BotStartupConfig AddMiddleware(BotMiddlewareBase mw)
+        {
+            Middlewares.Add(mw);
+            return this;
+        }
     }
 }
