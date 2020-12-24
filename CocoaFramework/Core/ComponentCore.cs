@@ -19,7 +19,7 @@ namespace CocoaFramework.Core
             Type[] types = assembly.GetTypes();
             foreach (var t in types)
             {
-                if (!t.GetTypeInfo().IsInstanceOfType(typeof(BotComponentBase)))
+                if (t.BaseType != typeof(BotComponentBase))
                 {
                     continue;
                 }
