@@ -22,6 +22,7 @@ Cocoa Framework 提供了一个 QQ 消息处理模型，以及对这个模型的
 
 ## 框架构成
 - [DisabledAttribute](./Framework/Disabled.md)
+- [HostedDataAttribute](./Framework/HostedData.md)
 - [Middleware](./Framework/Middleware.md)
 - [Module](./Framework/Module.md)
 - [Service](./Framework/Service.md)

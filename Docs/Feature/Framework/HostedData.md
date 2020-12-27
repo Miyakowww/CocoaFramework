@@ -1,0 +1,3 @@
+# HostedDataAttribute
+
+添加了此特性的字段会被视为数据字段，初始化时自动加载，保存时被自动保存。但如果此字段还没有存储记录，则不会被更改，引用类型因注意这一点以避免 NullReferenceException
