@@ -409,7 +409,7 @@ namespace CocoaFramework.Core
 
         public void InitData()
         {
-            foreach (var f in GetType().GetFields())
+            foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 if (f.GetCustomAttributes<ModuleDataAttribute>().Any())
                 {
