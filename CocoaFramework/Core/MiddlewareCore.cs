@@ -1,8 +1,11 @@
 ﻿using CocoaFramework.Model;
+using CocoaFramework.Support;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +22,7 @@ namespace CocoaFramework.Core
 
             foreach (var m in Middlewares)
             {
+                m.InitData();
                 m.Init();
             }
         }
@@ -42,5 +46,43 @@ namespace CocoaFramework.Core
     {
         public virtual void Init() { }
         public abstract bool Run(ref MessageSource src, ref QMessage msg);
+
+        private readonly List<FieldInfo> fields = new();
+        private string? TypeName;
+
+        public void InitData()
+        {
+            foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (f.GetCustomAttributes<HostedDataAttribute>().Any())
+                {
+                    fields.Add(f);
+                }
+            }
+            TypeName = GetType().Name;
+            LoadData();
+        }
+        public void LoadData()
+        {
+            if (!Directory.Exists($@"{DataManager.dataPath}MiddlewareData\{TypeName}"))
+            {
+                Directory.CreateDirectory($@"{DataManager.dataPath}MiddlewareData\{TypeName}");
+            }
+            foreach (var f in fields)
+            {
+                object? val = DataManager.LoadData($@"MiddlewareData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
+                if (val is not null)
+                {
+                    f.SetValue(this, val);
+                }
+            }
+        }
+        public void SaveData()
+        {
+            foreach (var f in fields)
+            {
+                _ = DataManager.SaveData($@"MiddlewareData\{TypeName}\Field_{f.Name}", f.GetValue(this));
+            }
+        }
     }
 }

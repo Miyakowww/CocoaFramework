@@ -57,5 +57,5 @@ namespace CocoaFramework.Core
     public sealed class BotServiceAttribute : Attribute { }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-    public sealed class ModuleDataAttribute : Attribute { }
+    public sealed class HostedDataAttribute : Attribute { }
 }

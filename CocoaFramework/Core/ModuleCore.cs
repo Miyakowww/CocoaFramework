@@ -41,8 +41,7 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                BotModuleBase? module = Activator.CreateInstance(t) as BotModuleBase;
-                if (module is null)
+                if (Activator.CreateInstance(t) is not BotModuleBase module)
                 {
                     continue;
                 }
@@ -411,7 +410,7 @@ namespace CocoaFramework.Core
         {
             foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
-                if (f.GetCustomAttributes<ModuleDataAttribute>().Any())
+                if (f.GetCustomAttributes<HostedDataAttribute>().Any())
                 {
                     fields.Add(f);
                 }

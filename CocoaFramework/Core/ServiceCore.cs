@@ -1,7 +1,9 @@
 ﻿using CocoaFramework.Model;
+using CocoaFramework.Support;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -37,6 +39,7 @@ namespace CocoaFramework.Core
                 BotServiceBase? service = Activator.CreateInstance(t) as BotServiceBase;
                 if (service is not null)
                 {
+                    service.InitData();
                     service.Init();
                     services.Add(service);
                 }
@@ -58,5 +61,43 @@ namespace CocoaFramework.Core
     {
         public virtual void Init() { }
         public abstract void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule);
+
+        private readonly List<FieldInfo> fields = new();
+        private string? TypeName;
+
+        public void InitData()
+        {
+            foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (f.GetCustomAttributes<HostedDataAttribute>().Any())
+                {
+                    fields.Add(f);
+                }
+            }
+            TypeName = GetType().Name;
+            LoadData();
+        }
+        public void LoadData()
+        {
+            if (!Directory.Exists($@"{DataManager.dataPath}ServiceData\{TypeName}"))
+            {
+                Directory.CreateDirectory($@"{DataManager.dataPath}ServiceData\{TypeName}");
+            }
+            foreach (var f in fields)
+            {
+                object? val = DataManager.LoadData($@"ServiceData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
+                if (val is not null)
+                {
+                    f.SetValue(this, val);
+                }
+            }
+        }
+        public void SaveData()
+        {
+            foreach (var f in fields)
+            {
+                _ = DataManager.SaveData($@"ServiceData\{TypeName}\Field_{f.Name}", f.GetValue(this));
+            }
+        }
     }
 }

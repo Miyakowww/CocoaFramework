@@ -10,12 +10,12 @@ namespace CocoaFramework.Support
     public static class BotAuth
     {
         public static long Owner { get; private set; }
-        public static ImmutableArray<long> Admin { get; private set; }
+        public static ImmutableArray<long> Admin { get; private set; } = ImmutableArray.Create<long>();
 
         public static void Init()
         {
             Owner = BotReg.GetLong("CORE/OWNER", 0);
-            Admin = ImmutableArray.Create(DataManager.LoadData<long[]>("AdminList").Result ?? Array.Empty<long>());
+            Admin = DataManager.LoadData<ImmutableArray<long>?>("AdminList").Result ?? Admin;
         }
 
         public static bool HasOwner => Owner != 0;
@@ -41,6 +41,7 @@ namespace CocoaFramework.Support
         public static void SetOwner(long qid)
         {
             Owner = qid;
+            BotReg.SetLong("CORE/OWNER", qid);
         }
         public static bool SetAdmin(long qid)
         {
@@ -51,6 +52,7 @@ namespace CocoaFramework.Support
             else
             {
                 Admin = Admin.Add(qid);
+                _ = DataManager.SaveData("AdminList", Admin);
                 return true;
             }
         }
@@ -59,6 +61,7 @@ namespace CocoaFramework.Support
             if (Admin.Contains(qid))
             {
                 Admin = Admin.Remove(qid);
+                _ = DataManager.SaveData("AdminList", Admin);
                 return true;
             }
             else

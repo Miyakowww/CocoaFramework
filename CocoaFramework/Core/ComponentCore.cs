@@ -1,6 +1,8 @@
-﻿using System;
+﻿using CocoaFramework.Support;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -36,6 +38,7 @@ namespace CocoaFramework.Core
                 BotComponentBase? component = Activator.CreateInstance(t) as BotComponentBase;
                 if (component is not null)
                 {
+                    component.InitData();
                     component.Init();
                     components.Add(component);
                 }
@@ -48,5 +51,43 @@ namespace CocoaFramework.Core
     public abstract class BotComponentBase
     {
         public virtual void Init() { }
+
+        private readonly List<FieldInfo> fields = new();
+        private string? TypeName;
+
+        public void InitData()
+        {
+            foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (f.GetCustomAttributes<HostedDataAttribute>().Any())
+                {
+                    fields.Add(f);
+                }
+            }
+            TypeName = GetType().Name;
+            LoadData();
+        }
+        public void LoadData()
+        {
+            if (!Directory.Exists($@"{DataManager.dataPath}ComponentData\{TypeName}"))
+            {
+                Directory.CreateDirectory($@"{DataManager.dataPath}ComponentData\{TypeName}");
+            }
+            foreach (var f in fields)
+            {
+                object? val = DataManager.LoadData($@"ComponentData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
+                if (val is not null)
+                {
+                    f.SetValue(this, val);
+                }
+            }
+        }
+        public void SaveData()
+        {
+            foreach (var f in fields)
+            {
+                _ = DataManager.SaveData($@"ComponentData\{TypeName}\Field_{f.Name}", f.GetValue(this));
+            }
+        }
     }
 }
