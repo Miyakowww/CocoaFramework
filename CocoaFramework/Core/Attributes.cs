@@ -16,26 +16,18 @@ namespace CocoaFramework.Core
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class BotModuleAttribute : Attribute
     {
-        public string name;
-        public int level;
-        public bool privateAvailable;
-        public bool groupAvailable;
-        public bool showOnModuleList;
-        public int processLevel;
+        public string Name { get; }
+        public int Level { get; }
+        public bool PrivateAvailable { get; }
+        public bool GroupAvailable { get; }
+        public bool ShowOnModuleList { get; set; }
+        public int ProcessLevel { get; set; }
         public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable)
-            : this(name, level, privateAvailable, groupAvailable, true, 0) { }
-        public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable, bool showOnModuleList)
-            : this(name, level, privateAvailable, groupAvailable, showOnModuleList, 0) { }
-        public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable, int processLevel)
-            : this(name, level, privateAvailable, groupAvailable, true, processLevel) { }
-        public BotModuleAttribute(string name, int level, bool privateAvailable, bool groupAvailable, bool showOnModuleList, int processLevel)
         {
-            this.name = name;
-            this.level = level;
-            this.privateAvailable = privateAvailable;
-            this.groupAvailable = groupAvailable;
-            this.showOnModuleList = showOnModuleList;
-            this.processLevel = processLevel;
+            Name = name;
+            Level = level;
+            PrivateAvailable = privateAvailable;
+            GroupAvailable = groupAvailable;
         }
     }
 

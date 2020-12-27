@@ -45,12 +45,12 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                module.name = m.name;
-                module.level = m.level;
-                module.privateAvailable = m.privateAvailable;
-                module.groupAvailable = m.groupAvailable;
-                module.showOnModuleList = m.showOnModuleList;
-                module.processLevel = m.processLevel;
+                module.name = m.Name;
+                module.level = m.Level;
+                module.privateAvailable = m.PrivateAvailable;
+                module.groupAvailable = m.GroupAvailable;
+                module.showOnModuleList = m.ShowOnModuleList;
+                module.processLevel = m.ProcessLevel;
                 module.InitData();
                 module.Init();
                 modules.Add(module);
@@ -160,22 +160,13 @@ namespace CocoaFramework.Core
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src)
             => locks.Add(new MessageLock(lockRun, s => s.Equals(src), TimeSpan.Zero, null).Run);
 
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout)
-            => locks.Add(new MessageLock(lockRun, predicate, timeout, null).Run);
-
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout)
-            => locks.Add(new MessageLock(lockRun, target.Fit, timeout, null).Run);
-
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src, TimeSpan timeout)
-            => locks.Add(new MessageLock(lockRun, s => s.Equals(src), timeout, null).Run);
-
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout, Action onTimeout)
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout, Action onTimeout = null!)
             => locks.Add(new MessageLock(lockRun, predicate, timeout, onTimeout).Run);
 
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout, Action onTimeout)
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout, Action onTimeout = null!)
             => locks.Add(new MessageLock(lockRun, target.Fit, timeout, onTimeout).Run);
 
-        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src, TimeSpan timeout, Action onTimeout)
+        public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src, TimeSpan timeout, Action onTimeout = null!)
             => locks.Add(new MessageLock(lockRun, s => s.Equals(src), timeout, onTimeout).Run);
 
 
