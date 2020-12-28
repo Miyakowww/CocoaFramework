@@ -12,7 +12,7 @@ namespace CocoaFramework.Support
         private static readonly List<string> needSave = new();
         private static readonly List<string> saving = new();
 
-        internal static bool SavingData => needSave.Any() || saving.Any();
+        internal static bool SavingData => needSave.Count > 0 || saving.Count > 0;
 
         public static readonly string dataPath = AppDomain.CurrentDomain.BaseDirectory + @"\data\";
 
@@ -50,7 +50,7 @@ namespace CocoaFramework.Support
         {
             while (needSave.Contains(name) || saving.Contains(name))
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
             if (File.Exists($@"{dataPath}{name}.json"))
             {
@@ -65,7 +65,7 @@ namespace CocoaFramework.Support
         {
             while (needSave.Contains(name) || saving.Contains(name))
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
             if (File.Exists($@"{dataPath}{name}.json"))
             {
