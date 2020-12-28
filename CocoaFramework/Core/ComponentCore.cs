@@ -14,8 +14,7 @@ namespace CocoaFramework.Core
     {
         public static ImmutableArray<BotComponentBase> Components { get; private set; }
 
-        [Obsolete("请不要手动进行初始化")]
-        public static void Init(Assembly assembly)
+        internal static void Init(Assembly assembly)
         {
             List<BotComponentBase> components = new();
             Type[] types = assembly.GetTypes();
@@ -50,12 +49,12 @@ namespace CocoaFramework.Core
 
     public abstract class BotComponentBase
     {
-        public virtual void Init() { }
+        protected internal virtual void Init() { }
 
         private readonly List<FieldInfo> fields = new();
         private string? TypeName;
 
-        public void InitData()
+        internal void InitData()
         {
             foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -67,7 +66,7 @@ namespace CocoaFramework.Core
             TypeName = GetType().Name;
             LoadData();
         }
-        public void LoadData()
+        internal void LoadData()
         {
             if (!Directory.Exists($@"{DataManager.dataPath}ComponentData\{TypeName}"))
             {
@@ -82,7 +81,7 @@ namespace CocoaFramework.Core
                 }
             }
         }
-        public void SaveData()
+        internal void SaveData()
         {
             foreach (var f in fields)
             {

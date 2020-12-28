@@ -15,8 +15,7 @@ namespace CocoaFramework.Core
     {
         public static ImmutableArray<BotMiddlewareBase> Middlewares { get; private set; }
 
-        [Obsolete("请不要手动进行初始化")]
-        public static void Init(BotMiddlewareBase[] middlewares)
+        internal static void Init(BotMiddlewareBase[] middlewares)
         {
             Middlewares = ImmutableArray.Create(middlewares);
 
@@ -27,8 +26,7 @@ namespace CocoaFramework.Core
             }
         }
 
-        [Obsolete("请不要手动调用此方法")]
-        public static bool Run(ref MessageSource src, ref QMessage msg)
+        internal static bool Run(ref MessageSource src, ref QMessage msg)
         {
             foreach (var m in Middlewares)
             {
@@ -44,13 +42,13 @@ namespace CocoaFramework.Core
 
     public abstract class BotMiddlewareBase
     {
-        public virtual void Init() { }
-        public abstract bool Run(ref MessageSource src, ref QMessage msg);
+        protected internal virtual void Init() { }
+        protected internal abstract bool Run(ref MessageSource src, ref QMessage msg);
 
         private readonly List<FieldInfo> fields = new();
         private string? TypeName;
 
-        public void InitData()
+        internal void InitData()
         {
             foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -62,7 +60,7 @@ namespace CocoaFramework.Core
             TypeName = GetType().Name;
             LoadData();
         }
-        public void LoadData()
+        internal void LoadData()
         {
             if (!Directory.Exists($@"{DataManager.dataPath}MiddlewareData\{TypeName}"))
             {
@@ -77,7 +75,7 @@ namespace CocoaFramework.Core
                 }
             }
         }
-        public void SaveData()
+        internal void SaveData()
         {
             foreach (var f in fields)
             {

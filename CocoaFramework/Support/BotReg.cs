@@ -9,8 +9,7 @@ namespace CocoaFramework.Support
     {
         private static Dictionary<string, string> data = new();
 
-        [Obsolete("请不要手动进行初始化")]
-        public static void Init()
+        internal static void Init()
         {
             data = DataManager.LoadData<Dictionary<string, string>>("BotReg").Result ?? data;
         }

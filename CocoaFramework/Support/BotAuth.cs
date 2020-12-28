@@ -12,7 +12,7 @@ namespace CocoaFramework.Support
         public static long Owner { get; private set; }
         public static ImmutableArray<long> Admin { get; private set; } = ImmutableArray.Create<long>();
 
-        public static void Init()
+        internal static void Init()
         {
             Owner = BotReg.GetLong("CORE/OWNER", 0);
             Admin = DataManager.LoadData<ImmutableArray<long>?>("AdminList").Result ?? Admin;

@@ -20,8 +20,7 @@ namespace CocoaFramework.Core
         private static readonly Dictionary<BotModuleBase, List<RegexRouteInfo>> routes = new();
         private static readonly List<Func<MessageSource, QMessage, LockState>> locks = new();
 
-        [Obsolete("请不要手动进行初始化")]
-        public static void Init(Assembly assembly)
+        internal static void Init(Assembly assembly)
         {
             List<BotModuleBase> modules = new();
             Type[] types = assembly.GetTypes();
@@ -45,12 +44,12 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                module.name = m.Name;
-                module.level = m.Level;
-                module.privateAvailable = m.PrivateAvailable;
-                module.groupAvailable = m.GroupAvailable;
-                module.showOnModuleList = m.ShowOnModuleList;
-                module.processLevel = m.ProcessLevel;
+                module.Name = m.Name;
+                module.Level = m.Level;
+                module.PrivateAvailable = m.PrivateAvailable;
+                module.GroupAvailable = m.GroupAvailable;
+                module.ShowOnModuleList = m.ShowOnModuleList;
+                module.ProcessLevel = m.ProcessLevel;
                 module.InitData();
                 module.Init();
                 modules.Add(module);
@@ -76,7 +75,7 @@ namespace CocoaFramework.Core
                     }
                 }
             }
-            modules.Sort((a, b) => a.processLevel.CompareTo(b.processLevel));
+            modules.Sort((a, b) => a.ProcessLevel.CompareTo(b.ProcessLevel));
             Modules = ImmutableArray.Create(modules.ToArray());
         }
 
@@ -85,8 +84,7 @@ namespace CocoaFramework.Core
         /// -1: false
         /// 0+: moduleID
         /// </summary>
-        [Obsolete("请不要手动调用此方法")]
-        public static int Run(MessageSource src, QMessage msg)
+        internal static int Run(MessageSource src, QMessage msg)
         {
             // Lock Run
             for (int i = locks.Count - 1; i >= 0; i--)
@@ -110,12 +108,12 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                bool auth = src.AuthLevel >= m.level && m.UActive(src.user.ID);
-                if (auth && src.IsGroup && !(m.groupAvailable && m.GActive(src.group!.ID)))
+                bool auth = src.AuthLevel >= m.Level && m.UActive(src.user.ID);
+                if (auth && src.IsGroup && !(m.GroupAvailable && m.GActive(src.group!.ID)))
                 {
                     auth = false;
                 }
-                if (auth && !src.IsGroup && !m.privateAvailable)
+                if (auth && !src.IsGroup && !m.PrivateAvailable)
                 {
                     auth = false;
                 }
@@ -140,7 +138,7 @@ namespace CocoaFramework.Core
                     }
                     catch (Exception e)
                     {
-                        throw new Exception($"Module Run Error: {m.name}", e);
+                        throw new Exception($"Module Run Error: {m.Name}", e);
                     }
                 }
             }
@@ -369,12 +367,12 @@ namespace CocoaFramework.Core
 
     public abstract class BotModuleBase
     {
-        public string? name;
-        public int level;
-        public bool privateAvailable;
-        public bool groupAvailable;
-        public bool showOnModuleList;
-        public int processLevel;
+        public string? Name { get; internal set; }
+        public int Level { get; internal set; }
+        public bool PrivateAvailable { get; internal set; }
+        public bool GroupAvailable { get; internal set; }
+        public bool ShowOnModuleList { get; internal set; }
+        public int ProcessLevel { get; internal set; }
 
         private bool enabled;
         public bool Enabled
@@ -397,7 +395,7 @@ namespace CocoaFramework.Core
 
         public bool ActivityOverrode => GetType().GetMethod("GActive", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
 
-        public void InitData()
+        internal void InitData()
         {
             foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -410,7 +408,7 @@ namespace CocoaFramework.Core
             enabled = BotReg.GetBool($"MODULE/{TypeName}/ENABLED", true);
             LoadData();
         }
-        public void LoadData()
+        internal void LoadData()
         {
             if (!Directory.Exists($@"{DataManager.dataPath}ModuleData\{TypeName}"))
             {
@@ -432,7 +430,7 @@ namespace CocoaFramework.Core
                 }
             }
         }
-        public void SaveData()
+        internal void SaveData()
         {
             _ = DataManager.SaveData($@"ModuleData\{TypeName}\.ModuleData", ModuleData);
             foreach (var f in fields)
@@ -485,7 +483,7 @@ namespace CocoaFramework.Core
             return false;
         }
 
-        public void AddUsage()
+        internal void AddUsage()
         {
             int deltaDay = (int)(new DateTime(
                     DateTime.Now.Year,
@@ -493,8 +491,8 @@ namespace CocoaFramework.Core
                     DateTime.Now.Day)
                 - new DateTime(
                     ModuleData!.LastStatistics.Year,
-                    ModuleData.LastStatistics.Month,
-                    ModuleData.LastStatistics.Day)
+                    ModuleData!.LastStatistics.Month,
+                    ModuleData!.LastStatistics.Day)
                 ).TotalDays;
             if (deltaDay > 0)
             {
@@ -510,6 +508,25 @@ namespace CocoaFramework.Core
         }
         public int GetUsage(int range)
         {
+            int deltaDay = (int)(new DateTime(
+                    DateTime.Now.Year,
+                    DateTime.Now.Month,
+                    DateTime.Now.Day)
+                - new DateTime(
+                    ModuleData!.LastStatistics.Year,
+                    ModuleData!.LastStatistics.Month,
+                    ModuleData!.LastStatistics.Day)
+                ).TotalDays;
+            if (deltaDay > 0)
+            {
+                ModuleData.Usage.InsertRange(0, new int[deltaDay]);
+                if (ModuleData.Usage.Count > 30)
+                {
+                    ModuleData.Usage.RemoveRange(30, ModuleData.Usage.Count - 30);
+                }
+                ModuleData.LastStatistics = DateTime.Now;
+                SaveData();
+            }
             if (range >= 30)
             {
                 return ModuleData!.Usage.Sum();
@@ -522,8 +539,8 @@ namespace CocoaFramework.Core
             return count;
         }
 
-        public virtual void Init() { }
-        public virtual bool Run(MessageSource src, QMessage msg) { return false; }
+        protected internal virtual void Init() { }
+        protected internal virtual bool Run(MessageSource src, QMessage msg) { return false; }
         public virtual bool GActive(long groupID)
             => ModuleData!.ActiveGroup.Contains(groupID);
         public bool UActive(long userID)

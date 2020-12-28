@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -10,6 +11,8 @@ namespace CocoaFramework.Support
     {
         private static readonly List<string> needSave = new();
         private static readonly List<string> saving = new();
+
+        internal static bool SavingData => needSave.Any() || saving.Any();
 
         public static readonly string dataPath = AppDomain.CurrentDomain.BaseDirectory + @"\data\";
 
@@ -21,11 +24,14 @@ namespace CocoaFramework.Support
             }
             if (saving.Contains(name))
             {
-                needSave.UniqueAdd(name);
+                if (!needSave.Contains(name))
+                {
+                    needSave.Add(name);
+                }
             }
             else
             {
-                saving.UniqueAdd(name);
+                saving.Add(name);
                 string path = $@"{dataPath}{name}.json";
                 if (!Directory.Exists(Path.GetDirectoryName(path)))
                 {
@@ -70,15 +76,5 @@ namespace CocoaFramework.Support
                 return default;
             }
         }
-
-        #region List Extensions
-        public static void UniqueAdd<T>(this List<T> list, T item)
-        {
-            if (!list.Contains(item))
-            {
-                list.Add(item);
-            }
-        }
-        #endregion
     }
 }

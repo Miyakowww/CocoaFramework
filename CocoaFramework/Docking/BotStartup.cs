@@ -1,4 +1,5 @@
 ﻿using CocoaFramework.Core;
+using CocoaFramework.Support;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
 using System;
@@ -55,6 +56,27 @@ namespace CocoaFramework.Docking
             {
                 await Task.Delay(10);
             }
+            BotCore.AutoSave = false;
+            foreach (var w in MiddlewareCore.Middlewares)
+            {
+                w.SaveData();
+            }
+            foreach (var m in ModuleCore.Modules)
+            {
+                m.SaveData();
+            }
+            foreach (var s in ServiceCore.Services)
+            {
+                s.SaveData();
+            }
+            foreach (var c in ComponentCore.Components)
+            {
+                c.SaveData();
+            }
+            while (DataManager.SavingData)
+            {
+                await Task.Delay(10);
+            }
             await session.DisposeAsync();
         }
     }
@@ -68,6 +90,7 @@ namespace CocoaFramework.Docking
 
         public List<BotMiddlewareBase> Middlewares { get; } = new();
         public Assembly assembly;
+        public TimeSpan autoSave;
 
         public BotStartupConfig(string host, int port, string authKey, long qqID)
         {
@@ -76,6 +99,7 @@ namespace CocoaFramework.Docking
             this.authKey = authKey;
             this.qqID = qqID;
             assembly = Assembly.GetEntryAssembly()!;
+            autoSave = TimeSpan.FromMinutes(5);
         }
 
         public BotStartupConfig AddMiddleware(BotMiddlewareBase mw)

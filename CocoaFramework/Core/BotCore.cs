@@ -8,14 +8,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-
-#pragma warning disable CS0618 // 用户专用的警告
 
 namespace CocoaFramework.Core
 {
     internal static class BotCore
     {
+        public static bool AutoSave = true;
         public static async Task Init(MiraiHttpSession session, BotStartupConfig config)
         {
             BotAPI.Init(session);
@@ -28,6 +28,31 @@ namespace CocoaFramework.Core
             ModuleCore.Init(config.assembly);
             ServiceCore.Init(config.assembly);
             ComponentCore.Init(config.assembly);
+
+            _ = Task.Run(async () =>
+            {
+                TimeSpan delta = config.autoSave;
+                while (AutoSave && delta > TimeSpan.Zero)
+                {
+                    await Task.Delay(config.autoSave);
+                    foreach (var w in MiddlewareCore.Middlewares)
+                    {
+                        w.SaveData();
+                    }
+                    foreach (var m in ModuleCore.Modules)
+                    {
+                        m.SaveData();
+                    }
+                    foreach (var s in ServiceCore.Services)
+                    {
+                        s.SaveData();
+                    }
+                    foreach (var c in ComponentCore.Components)
+                    {
+                        c.SaveData();
+                    }
+                }
+            });
         }
 
         public static void Message(MessageSource src, QMessage msg)

@@ -15,8 +15,7 @@ namespace CocoaFramework.Core
     {
         public static ImmutableArray<BotServiceBase> Services { get; private set; }
 
-        [Obsolete("请不要手动进行初始化")]
-        public static void Init(Assembly assembly)
+        internal static void Init(Assembly assembly)
         {
             List<BotServiceBase> services = new();
             Type[] types = assembly.GetTypes();
@@ -47,8 +46,7 @@ namespace CocoaFramework.Core
             Services = ImmutableArray.Create(services.ToArray());
         }
 
-        [Obsolete("请不要手动调用此方法")]
-        public static void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
+        internal static void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
         {
             foreach (var s in Services)
             {
@@ -59,13 +57,13 @@ namespace CocoaFramework.Core
 
     public abstract class BotServiceBase
     {
-        public virtual void Init() { }
-        public abstract void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule);
+        protected internal virtual void Init() { }
+        protected internal abstract void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule);
 
         private readonly List<FieldInfo> fields = new();
         private string? TypeName;
 
-        public void InitData()
+        internal void InitData()
         {
             foreach (var f in GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -77,7 +75,7 @@ namespace CocoaFramework.Core
             TypeName = GetType().Name;
             LoadData();
         }
-        public void LoadData()
+        internal void LoadData()
         {
             if (!Directory.Exists($@"{DataManager.dataPath}ServiceData\{TypeName}"))
             {
@@ -92,7 +90,7 @@ namespace CocoaFramework.Core
                 }
             }
         }
-        public void SaveData()
+        internal void SaveData()
         {
             foreach (var f in fields)
             {
