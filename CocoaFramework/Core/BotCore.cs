@@ -80,7 +80,7 @@ namespace CocoaFramework.Core
         }
         public static void FriendRequest(IApplyResponseArgs args)
         {
-            if (BotReg.GetBool("CORE/ALLOW_FRIEND_REQUEST", true))
+            if (BotReg.GetBool("CORE/ALLOW_FRIEND_REQUEST", false))
             {
                 BotAPI.HandleNewFriendApplyAsync(args, FriendApplyAction.Allow).Wait();
                 if (BotAuth.HasOwner && BotReg.GetBool("LOG/FRIEND_REQUEST", true))
