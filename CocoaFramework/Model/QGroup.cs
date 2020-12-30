@@ -33,5 +33,17 @@ namespace CocoaFramework.Model
 
         public Task<int> SendMessageAsync(params IMessageBase[] chain)
             => BotAPI.SendGroupMessageAsync(ID, chain);
+
+        public int SendImage(string path)
+            => SendImageAsync(path).Result;
+
+        public async Task<int> SendImageAsync(string path)
+            => await BotAPI.SendGroupMessageAsync(ID, await BotAPI.UploadImageAsync(UploadTarget.Group, path));
+
+        public int SendVoice(string path)
+            => SendVoiceAsync(path).Result;
+
+        public async Task<int> SendVoiceAsync(string path)
+            => await BotAPI.SendGroupMessageAsync(ID, await BotAPI.UploadVoiceAsync(UploadTarget.Group, path));
     }
 }

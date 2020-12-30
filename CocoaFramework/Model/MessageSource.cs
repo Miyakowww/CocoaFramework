@@ -176,5 +176,17 @@ namespace CocoaFramework.Model
                 return BotAPI.SendFriendMessageAsync(user.ID, chain);
             }
         }
+
+        public int SendImage(string path)
+            => SendImageAsync(path).Result;
+
+        public async Task<int> SendImageAsync(string path)
+            => await SendAsync(await BotAPI.UploadImageAsync(IsGroup ? UploadTarget.Group : (IsFriend ? UploadTarget.Friend : UploadTarget.Temp), path));
+
+        public int SendVoice(string path)
+            => SendVoiceAsync(path).Result;
+
+        public async Task<int> SendVoiceAsync(string path)
+            => await SendAsync(await BotAPI.UploadVoiceAsync(IsGroup ? UploadTarget.Group : (IsFriend ? UploadTarget.Friend : UploadTarget.Temp), path));
     }
 }

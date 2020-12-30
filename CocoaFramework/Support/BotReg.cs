@@ -26,7 +26,7 @@ namespace CocoaFramework.Support
         public static string[] GetKeys(string path)
             => data.Keys
             .Where(k => k.StartsWith(path))
-            .Select(k => k[path.Length..])
+            .Select(k => k[(path.EndsWith('/') ? path.Length : path.Length + 1)..])
             .ToArray();
 
         public static string GetString(string key) => GetString(key, "");

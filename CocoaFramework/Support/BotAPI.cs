@@ -136,5 +136,15 @@ namespace CocoaFramework.Support
         {
             return session!.GetGroupListAsync();
         }
+
+        public static Task<ImageMessage> UploadImageAsync(UploadTarget target, string path)
+        {
+            return session!.UploadPictureAsync(target, path);
+        }
+
+        public static Task<VoiceMessage> UploadVoiceAsync(UploadTarget target, string path)
+        {
+            return session!.UploadVoiceAsync(target, path);
+        }
     }
 }
