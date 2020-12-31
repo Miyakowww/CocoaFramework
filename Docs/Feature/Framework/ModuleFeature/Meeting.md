@@ -5,7 +5,7 @@ Meeting 是对一段连续的消息处理过程的抽象，即目标的消息不
 <br>
 
 ## 开始 Meeting
-可以使用 Meeting.Start 开启一次 Meeting
+可以使用 Meeting.Start 开启一次 Meeting，也可以通过 [RegexRoute](./RegexRoute.md) 自动启动
 
 <br>
 
