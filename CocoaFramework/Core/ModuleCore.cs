@@ -261,6 +261,7 @@ namespace CocoaFramework.Core
             public List<(int gnum, int argIndex)>[] argsIndex;
 
             private readonly bool isEnumerator;
+            private readonly bool isEnumerable;
             private readonly bool isValueType;
             private readonly bool isVoid;
 
@@ -275,6 +276,7 @@ namespace CocoaFramework.Core
                 srcIndex = -1;
                 msgIndex = -1;
                 isEnumerator = route.ReturnType == typeof(IEnumerator);
+                isEnumerable = route.ReturnType == typeof(IEnumerable);
                 isVoid = route.ReturnType == typeof(void);
                 isValueType = route.ReturnType.IsValueType && !isVoid;
                 for (int i = 0; i < argCount; i++)
@@ -332,6 +334,11 @@ namespace CocoaFramework.Core
                     if (isEnumerator)
                     {
                         Meeting.Start(src, (route.Invoke(module, args) as IEnumerator)!);
+                        return true;
+                    }
+                    if (isEnumerable)
+                    {
+                        Meeting.Start(src, (route.Invoke(module, args) as IEnumerable)!);
                         return true;
                     }
                     else

@@ -188,5 +188,29 @@ namespace CocoaFramework.Model
 
         public async Task<int> SendVoiceAsync(string path)
             => await SendAsync(await BotAPI.UploadVoiceAsync(IsGroup ? UploadTarget.Group : (IsFriend ? UploadTarget.Friend : UploadTarget.Temp), path));
+
+        public void Mute(TimeSpan duration)
+            => MuteAsync(duration);
+
+        public Task MuteAsync(TimeSpan duration)
+            => IsGroup ? BotAPI.MuteAsync(group!.ID, user.ID, duration) : Task.CompletedTask;
+
+        public void Unmute()
+            => UnmuteAsync();
+
+        public Task UnmuteAsync()
+            => IsGroup ? BotAPI.UnmuteAsync(group!.ID, user.ID) : Task.CompletedTask;
+
+        public void MuteAll()
+            => MuteAllAsync();
+
+        public Task MuteAllAsync()
+            => IsGroup ? BotAPI.MuteAllAsync(group!.ID) : Task.CompletedTask;
+
+        public void UnmuteAll()
+            => UnmuteAllAsync();
+
+        public Task UnmuteAllAsync()
+            => IsGroup ? BotAPI.UnmuteAllAsync(group!.ID) : Task.CompletedTask;
     }
 }

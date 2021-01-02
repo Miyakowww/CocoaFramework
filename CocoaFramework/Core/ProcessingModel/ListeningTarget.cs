@@ -9,10 +9,10 @@ namespace CocoaFramework.Core.ProcessingModel
 {
     public record ListeningTarget
     {
-        public QGroup? group;
-        public QUser? user;
+        public readonly QGroup? group;
+        public readonly QUser? user;
 
-        public bool Fit(MessageSource src)
+        internal bool Fit(MessageSource src)
         {
             bool gFit = group is null || group.ID == src?.group?.ID;
             bool uFit = user is null || user.ID == src?.user?.ID;
@@ -25,7 +25,7 @@ namespace CocoaFramework.Core.ProcessingModel
             this.user = user;
         }
 
-        public static readonly ListeningTarget All = new ListeningTarget(null, null);
+        public static readonly ListeningTarget All = new(null, null);
         public static ListeningTarget FromGroup(long group)
         {
             return new ListeningTarget(new QGroup(group), null);

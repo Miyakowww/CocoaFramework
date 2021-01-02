@@ -107,6 +107,24 @@ namespace CocoaFramework.Core.ProcessingModel
                         return state;
                     }
                 }
+                if (proc.Current is IEnumerable subma)
+                {
+                    Meeting m = new Meeting(target, subma.GetEnumerator(), root);
+                    LockState state = m.Run(src, msg);
+                    if (state != LockState.Finished)
+                    {
+                        counter++;
+                        child = m;
+                        running = false;
+                        return state;
+                    }
+                    else
+                    {
+                        state = Run(src, msg);
+                        running = false;
+                        return state;
+                    }
+                }
                 counter++;
                 if (timeout > TimeSpan.Zero)
                 {
@@ -133,6 +151,10 @@ namespace CocoaFramework.Core.ProcessingModel
             }
         }
 
+        public static void Start(MessageSource src, IEnumerable proc)
+        {
+            Start(src, proc.GetEnumerator());
+        }
         public static void Start(MessageSource src, IEnumerator proc)
         {
             if (src is null)

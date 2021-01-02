@@ -146,5 +146,32 @@ namespace CocoaFramework.Support
         {
             return session!.UploadVoiceAsync(target, path);
         }
+
+        public static Task KickMemberAsync(long gid, long uid)
+        {
+            return session!.KickMemberAsync(uid, gid);
+        }
+
+        public static Task LeaveGroupAsync(long gid)
+        {
+            return session!.LeaveGroupAsync(gid);
+        }
+
+        public static Task MuteAsync(long gid, long uid, TimeSpan duration)
+        {
+            return session!.MuteAsync(uid, gid, duration);
+        }
+        public static Task UnmuteAsync(long gid, long uid)
+        {
+            return session!.UnmuteAsync(uid, gid);
+        }
+        public static Task MuteAllAsync(long gid)
+        {
+            return session!.MuteAllAsync(gid);
+        }
+        public static Task UnmuteAllAsync(long gid)
+        {
+            return session!.UnmuteAllAsync(gid);
+        }
     }
 }
