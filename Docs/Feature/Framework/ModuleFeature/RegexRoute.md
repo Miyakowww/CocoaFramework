@@ -23,6 +23,6 @@ Module 中添加了此特性的方法将被视为一个入口，收到符合条�
     - 入口方法的返回值可以是任意类型
     - 如果为 void 表示一旦被调用就代表消息被处理
     - 如果为 bool 类型表示消息是否被处理
-    - 如果为 IEnumerator 会被自动添加为 [Meeting](./Meeting.md)
+    - 如果为 IEnumerator 或 IEnumerable 会被自动添加为 [Meeting](./Meeting.md)
     - 如果为其他值类型，返回结果不为默认值将代表消息被处理
     - 如果为其他引用类型，返回结果不为 null 将代表消息被处理
