@@ -132,6 +132,10 @@ namespace CocoaFramework.Support
         {
             return session!.GetGroupMemberListAsync(gid);
         }
+        public static Task<IGroupMemberCardInfo> GetGroupMemberInfoAsync(long gid, long uid)
+        {
+            return session!.GetGroupMemberInfoAsync(uid, gid);
+        }
         public static Task<IGroupInfo[]> GetGroupListAsync()
         {
             return session!.GetGroupListAsync();

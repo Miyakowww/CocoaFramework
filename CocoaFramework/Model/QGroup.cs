@@ -46,6 +46,12 @@ namespace CocoaFramework.Model
         public async Task<int> SendVoiceAsync(string path)
             => await BotAPI.SendGroupMessageAsync(ID, await BotAPI.UploadVoiceAsync(UploadTarget.Group, path));
 
+        public IGroupMemberCardInfo GetMemberInfo(long uid)
+            => GetMemberInfoAsync(uid).Result;
+
+        public Task<IGroupMemberCardInfo> GetMemberInfoAsync(long uid)
+            => BotAPI.GetGroupMemberInfoAsync(ID, uid);
+
         public void Mute(long uid, TimeSpan duration)
             => MuteAsync(uid, duration);
 
