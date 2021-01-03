@@ -2,6 +2,7 @@
 using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -143,12 +144,14 @@ namespace CocoaFramework.Support
 
         public static Task<ImageMessage> UploadImageAsync(UploadTarget target, string path)
         {
-            return session!.UploadPictureAsync(target, path);
+            using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return session!.UploadPictureAsync(target, fs);
         }
 
         public static Task<VoiceMessage> UploadVoiceAsync(UploadTarget target, string path)
         {
-            return session!.UploadVoiceAsync(target, path);
+            using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return session!.UploadVoiceAsync(target, fs);
         }
 
         public static Task KickMemberAsync(long gid, long uid)
