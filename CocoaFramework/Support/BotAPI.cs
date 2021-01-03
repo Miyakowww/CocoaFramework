@@ -142,16 +142,16 @@ namespace CocoaFramework.Support
             return session!.GetGroupListAsync();
         }
 
-        public static Task<ImageMessage> UploadImageAsync(UploadTarget target, string path)
+        public static async Task<ImageMessage> UploadImageAsync(UploadTarget target, string path)
         {
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return session!.UploadPictureAsync(target, fs);
+            return await session!.UploadPictureAsync(target, fs);
         }
 
-        public static Task<VoiceMessage> UploadVoiceAsync(UploadTarget target, string path)
+        public static async Task<VoiceMessage> UploadVoiceAsync(UploadTarget target, string path)
         {
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return session!.UploadVoiceAsync(target, fs);
+            return await session!.UploadVoiceAsync(target, fs);
         }
 
         public static Task KickMemberAsync(long gid, long uid)
