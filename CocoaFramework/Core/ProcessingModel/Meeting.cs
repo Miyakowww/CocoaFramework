@@ -129,7 +129,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 if (timeout > TimeSpan.Zero)
                 {
                     int count = counter;
-                    new Task(async () =>
+                    Task.Run(async () =>
                     {
                         await Task.Delay(timeout);
                         await Task.Delay(100);
@@ -137,7 +137,7 @@ namespace CocoaFramework.Core.ProcessingModel
                         {
                             root.Run(null, null);
                         }
-                    }).Start();
+                    });
                 }
                 running = false;
                 return LockState.NotFinished;

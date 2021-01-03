@@ -55,17 +55,17 @@ namespace CocoaFramework.Core
             });
         }
 
-        public static void Message(MessageSource src, QMessage msg)
+        public static void OnMessage(MessageSource src, QMessage msg)
         {
             try
             {
                 QMessage newMsg = msg;
 
-                bool release = MiddlewareCore.Run(ref src, ref newMsg);
+                bool release = MiddlewareCore.OnMessage(ref src, ref newMsg);
                 if (release)
                 {
-                    int stat = ModuleCore.Run(src, newMsg);
-                    ServiceCore.Run(src, newMsg, msg, stat != -1, stat >= 0 ? ModuleCore.Modules[stat] : null);
+                    int stat = ModuleCore.OnMessage(src, newMsg);
+                    ServiceCore.OnMessage(src, newMsg, msg, stat != -1, stat >= 0 ? ModuleCore.Modules[stat] : null);
                 }
             }
             catch (Exception e)
@@ -78,7 +78,7 @@ namespace CocoaFramework.Core
                 File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "\\log_error.txt", einfo);
             }
         }
-        public static void FriendRequest(IApplyResponseArgs args)
+        public static void OnFriendRequest(IApplyResponseArgs args)
         {
             if (BotReg.GetBool("CORE/ALLOW_FRIEND_REQUEST", false))
             {

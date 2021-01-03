@@ -44,15 +44,14 @@ Module 的基类
 
 - 方法
     - SaveData：保存对当前模块数据的所有更改
-    - SetGroup：设置群的许可状态
-    - SetUser：设置用户的许可状态
-    - AddUsage：添加一次模块使用
+    - SetGroupActivity：设置群的启用状态
+    - SetUserBan：设置用户的黑名单状态
     - GetUsage：获取最近给定天数的使用次数
     - Init：此方法会在框架初始化时被调用，重载此方法可用于初始化
-    - Run：此方法会在处理消息时被调用，返回值为 bool 类型，表示当前消息是否被本模块处理
-    - GActive：给定群是否启用了本模块
-    - UActive：给定用户是否被允许使用本模块
-    - ActivityOverrode：GActive 方法是否被重载
+    - OnMessage：此方法会在处理消息时被调用，返回值为 bool 类型，表示当前消息是否被本模块处理
+    - GroupActivity：给定群是否启用了本模块
+    - UserActivity：给定用户是否被允许使用本模块
+    - ActivityOverrode：GroupActivity 方法是否被重载
 
 <br>
 

@@ -29,3 +29,11 @@
 - SendReplyExAsync：异步向来源发送回复，需要提供回复的消息，可设置如果为群时自动添加艾特
 - SendPrivate：向来源的用户发送私聊消息，即使来源为群聊
 - SendPrivateAsync：异步向来源的用户发送私聊消息，即使来源为群聊
+- SendImage：向来源发送图片
+- SendImageAsync：向来源异步发送图片
+- SendVoice：向来源发送语音
+- SendVoiceAsync：向来源异步发送语音
+- Mute：禁言用户，仅在为群聊消息时可用
+- MuteAsync：异步禁言用户，仅在为群聊消息时可用
+- Unmute：取消禁言用户，仅在为群聊消息时可用
+- UnmuteAsync：异步取消禁言用户，仅在为群聊消息时可用

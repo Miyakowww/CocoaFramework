@@ -16,3 +16,7 @@
 ## 方法
 - SendMessage：发送消息
 - SendMessageAsync：异步发送消息
+- SendImage：发送图片
+- SendImageAsync：异步发送图片
+- SendVoice：发送语音
+- SendVoiceAsync：异步发送语音

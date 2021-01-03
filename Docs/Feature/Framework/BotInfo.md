@@ -6,7 +6,8 @@
 
 ## 方法
 - ReloadAll：重新加载全部信息，一般不需要手动调用
-- ReloadGroups：重新加载群聊信息，一般不需要手动调用
+- ReloadAllGroupMembers：重新加载全部群成员列表，一般不需要手动调用
+- ReloadGroupMembers：重新加载群成员列表，一般不需要手动调用
 - ReloadFriends：重新加载好友信息，一般不需要手动调用
 - HasGroup：机器人是否在某个群聊
 - HasGroupMember：机器人是否在某个群并且该群包含某成员

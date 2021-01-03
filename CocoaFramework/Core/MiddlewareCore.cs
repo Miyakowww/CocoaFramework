@@ -26,11 +26,11 @@ namespace CocoaFramework.Core
             }
         }
 
-        internal static bool Run(ref MessageSource src, ref QMessage msg)
+        internal static bool OnMessage(ref MessageSource src, ref QMessage msg)
         {
             foreach (var m in Middlewares)
             {
-                bool ctn = m.Run(ref src, ref msg);
+                bool ctn = m.OnMessage(ref src, ref msg);
                 if (!ctn)
                 {
                     return false;
@@ -43,9 +43,9 @@ namespace CocoaFramework.Core
     public abstract class BotMiddlewareBase
     {
         protected internal virtual void Init() { }
-        protected internal abstract bool Run(ref MessageSource src, ref QMessage msg);
+        protected internal virtual bool OnMessage(ref MessageSource src, ref QMessage msg) { return true; }
 
-        private readonly List<FieldInfo> fields = new();
+        private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
 
         internal void InitData()
@@ -54,7 +54,7 @@ namespace CocoaFramework.Core
             {
                 if (f.GetCustomAttributes<HostedDataAttribute>().Any())
                 {
-                    fields.Add(f);
+                    hostedFields.Add(f);
                 }
             }
             TypeName = GetType().Name;
@@ -66,7 +66,7 @@ namespace CocoaFramework.Core
             {
                 Directory.CreateDirectory($@"{DataManager.dataPath}MiddlewareData\{TypeName}");
             }
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 object? val = DataManager.LoadData($@"MiddlewareData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
                 if (val is not null)
@@ -77,7 +77,7 @@ namespace CocoaFramework.Core
         }
         internal void SaveData()
         {
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 _ = DataManager.SaveData($@"MiddlewareData\{TypeName}\Field_{f.Name}", f.GetValue(this));
             }

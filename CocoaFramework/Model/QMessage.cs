@@ -37,7 +37,7 @@ namespace CocoaFramework.Model
             PlainText = sb.ToString();
         }
 
-        public T[] GetMessages<T>()
+        public T[] GetSubMessages<T>()
             => chain
             .Where(m => m is T)
             .Select(m => (T)m)

@@ -20,19 +20,19 @@ namespace CocoaFramework.Docking
     {
         public Task<bool> FriendMessage(MiraiHttpSession session, IFriendMessageEventArgs e)
         {
-            BotCore.Message(new MessageSource(e.Sender.Id), new QMessage(e.Chain));
+            BotCore.OnMessage(new MessageSource(e.Sender.Id), new QMessage(e.Chain));
             return Task.FromResult(true);
         }
 
         public Task<bool> GroupMessage(MiraiHttpSession session, IGroupMessageEventArgs e)
         {
-            BotCore.Message(new MessageSource(e.Sender.Group.Id, e.Sender.Id, false), new QMessage(e.Chain));
+            BotCore.OnMessage(new MessageSource(e.Sender.Group.Id, e.Sender.Id, false), new QMessage(e.Chain));
             return Task.FromResult(true);
         }
 
         public Task<bool> TempMessage(MiraiHttpSession session, ITempMessageEventArgs e)
         {
-            BotCore.Message(new MessageSource(e.Sender.Group.Id, e.Sender.Id, true), new QMessage(e.Chain));
+            BotCore.OnMessage(new MessageSource(e.Sender.Group.Id, e.Sender.Id, true), new QMessage(e.Chain));
             return Task.FromResult(true);
         }
     }
@@ -54,7 +54,7 @@ namespace CocoaFramework.Docking
     {
         public Task<bool> NewFriendApply(MiraiHttpSession session, INewFriendApplyEventArgs e)
         {
-            BotCore.FriendRequest(e);
+            BotCore.OnFriendRequest(e);
             return Task.FromResult(true);
         }
     }
@@ -71,43 +71,43 @@ namespace CocoaFramework.Docking
     {
         public async Task<bool> BotInvitedJoinGroup(MiraiHttpSession session, IBotInvitedJoinGroupEventArgs e)
         {
-            await BotInfo.ReloadGroup(e.FromGroup);
+            await BotInfo.ReloadGroupMembers(e.FromGroup);
             return true;
         }
 
         public async Task<bool> BotJoinedGroup(MiraiHttpSession session, IBotJoinedGroupEventArgs e)
         {
-            await BotInfo.ReloadGroup(e.Group.Id);
+            await BotInfo.ReloadGroupMembers(e.Group.Id);
             return true;
         }
 
         public async Task<bool> BotKickedOut(MiraiHttpSession session, IBotKickedOutEventArgs e)
         {
-            await BotInfo.ReloadGroup(e.Group.Id);
+            await BotInfo.ReloadGroupMembers(e.Group.Id);
             return true;
         }
 
         public async Task<bool> BotPositiveLeaveGroup(MiraiHttpSession session, IBotPositiveLeaveGroupEventArgs e)
         {
-            await BotInfo.ReloadGroup(e.Group.Id);
+            await BotInfo.ReloadGroupMembers(e.Group.Id);
             return true;
         }
 
         public async Task<bool> GroupMemberJoined(MiraiHttpSession session, IGroupMemberJoinedEventArgs e)
         {
-            await BotInfo.ReloadGroup(e.Member.Group.Id);
+            await BotInfo.ReloadGroupMembers(e.Member.Group.Id);
             return true;
         }
 
         public async Task<bool> GroupMemberKicked(MiraiHttpSession session, IGroupMemberKickedEventArgs e)
         {
-            await BotInfo.ReloadGroup(e.Member.Group.Id);
+            await BotInfo.ReloadGroupMembers(e.Member.Group.Id);
             return true;
         }
 
         public async Task<bool> GroupMemberPositiveLeave(MiraiHttpSession session, IGroupMemberPositiveLeaveEventArgs e)
         {
-            await BotInfo.ReloadGroup(e.Member.Group.Id);
+            await BotInfo.ReloadGroupMembers(e.Member.Group.Id);
             return true;
         }
     }

@@ -21,19 +21,19 @@ namespace CocoaFramework.Model
         public bool IsAdmin => user.IsAdmin;
         public int AuthLevel => user.AuthLevel;
 
-        public MessageSource(long qid)
+        public MessageSource(long qqID)
         {
             IsGroup = false;
             IsTemp = false;
             group = null;
-            user = new(qid);
+            user = new(qqID);
         }
-        public MessageSource(long gid, long qid, bool isTemp)
+        public MessageSource(long groupID, long qqID, bool isTemp)
         {
             IsGroup = !isTemp;
             IsTemp = isTemp;
-            group = new(gid);
-            user = new(qid);
+            group = new(groupID);
+            user = new(qqID);
         }
 
         public override bool Equals(object? obj)
@@ -193,12 +193,12 @@ namespace CocoaFramework.Model
             => MuteAsync(duration);
 
         public Task MuteAsync(TimeSpan duration)
-            => (IsGroup || IsTemp) ? BotAPI.MuteAsync(group!.ID, user.ID, duration) : Task.CompletedTask;
+            => IsGroup ? BotAPI.MuteGroupMemberAsync(group!.ID, user.ID, duration) : Task.CompletedTask;
 
         public void Unmute()
             => UnmuteAsync();
 
         public Task UnmuteAsync()
-            => (IsGroup || IsTemp) ? BotAPI.UnmuteAsync(group!.ID, user.ID) : Task.CompletedTask;
+            => IsGroup ? BotAPI.UnmuteGroupMemberAsync(group!.ID, user.ID) : Task.CompletedTask;
     }
 }

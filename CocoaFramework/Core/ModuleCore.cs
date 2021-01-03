@@ -84,7 +84,7 @@ namespace CocoaFramework.Core
         /// -1: false
         /// 0+: moduleID
         /// </summary>
-        internal static int Run(MessageSource src, QMessage msg)
+        internal static int OnMessage(MessageSource src, QMessage msg)
         {
             // Lock Run
             for (int i = locks.Count - 1; i >= 0; i--)
@@ -108,8 +108,8 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                bool auth = src.AuthLevel >= m.Level && m.UActive(src.user.ID);
-                if (auth && src.IsGroup && !(m.GroupAvailable && m.GActive(src.group!.ID)))
+                bool auth = src.AuthLevel >= m.Level && m.UserActivity(src.user.ID);
+                if (auth && src.IsGroup && !(m.GroupAvailable && m.GroupActivity(src.group!.ID)))
                 {
                     auth = false;
                 }
@@ -129,7 +129,7 @@ namespace CocoaFramework.Core
                                 return i;
                             }
                         }
-                        bool stat = m.Run(src, msg);
+                        bool stat = m.OnMessage(src, msg);
                         if (stat)
                         {
                             m.AddUsage();
@@ -188,7 +188,7 @@ namespace CocoaFramework.Core
                 if (timeout > TimeSpan.Zero)
                 {
                     int count = counter;
-                    new Task(async () =>
+                    Task.Run(async () =>
                     {
                         await Task.Delay(this.timeout);
                         if (counter == count && !running)
@@ -196,7 +196,7 @@ namespace CocoaFramework.Core
                             locks.Remove(Run);
                             this.onTimeout?.Invoke();
                         }
-                    }).Start();
+                    });
                 }
             }
 
@@ -397,10 +397,10 @@ namespace CocoaFramework.Core
 
         public BotModuleData? ModuleData { get; set; }
 
-        private readonly List<FieldInfo> fields = new();
+        private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
 
-        public bool ActivityOverrode => GetType().GetMethod("GActive", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
+        public bool ActivityOverrode => GetType().GetMethod("GroupActivity", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
 
         internal void InitData()
         {
@@ -408,7 +408,7 @@ namespace CocoaFramework.Core
             {
                 if (f.GetCustomAttributes<HostedDataAttribute>().Any())
                 {
-                    fields.Add(f);
+                    hostedFields.Add(f);
                 }
             }
             TypeName = GetType().Name;
@@ -428,7 +428,7 @@ namespace CocoaFramework.Core
                 LastStatistics = DateTime.Now,
                 Usage = new List<int>(new int[30])
             };
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 object? val = DataManager.LoadData($@"ModuleData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
                 if (val is not null)
@@ -440,49 +440,49 @@ namespace CocoaFramework.Core
         internal void SaveData()
         {
             _ = DataManager.SaveData($@"ModuleData\{TypeName}\.ModuleData", ModuleData);
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 _ = DataManager.SaveData($@"ModuleData\{TypeName}\Field_{f.Name}", f.GetValue(this));
             }
         }
-        public bool SetGroup(long gid, bool active)
+        public bool SetGroupActivity(long groupID, bool activity)
         {
-            if (active)
+            if (activity)
             {
-                if (!ModuleData!.ActiveGroup.Contains(gid))
+                if (!ModuleData!.ActiveGroup.Contains(groupID))
                 {
-                    ModuleData.ActiveGroup.Add(gid);
+                    ModuleData.ActiveGroup.Add(groupID);
                     SaveData();
                     return true;
                 }
             }
             else
             {
-                if (ModuleData!.ActiveGroup.Contains(gid))
+                if (ModuleData!.ActiveGroup.Contains(groupID))
                 {
-                    ModuleData.ActiveGroup.Remove(gid);
+                    ModuleData.ActiveGroup.Remove(groupID);
                     SaveData();
                     return true;
                 }
             }
             return false;
         }
-        public bool SetUser(long uid, bool active)
+        public bool SetUserBan(long qqID, bool banned)
         {
-            if (!active)
+            if (banned)
             {
-                if (!ModuleData!.BanUser.Contains(uid))
+                if (!ModuleData!.BanUser.Contains(qqID))
                 {
-                    ModuleData.BanUser.Add(uid);
+                    ModuleData.BanUser.Add(qqID);
                     SaveData();
                     return true;
                 }
             }
             else
             {
-                if (ModuleData!.BanUser.Contains(uid))
+                if (ModuleData!.BanUser.Contains(qqID))
                 {
-                    ModuleData.BanUser.Remove(uid);
+                    ModuleData.BanUser.Remove(qqID);
                     SaveData();
                     return true;
                 }
@@ -513,7 +513,7 @@ namespace CocoaFramework.Core
             ModuleData.LastStatistics = DateTime.Now;
             SaveData();
         }
-        public int GetUsage(int range)
+        public int GetUsage(int dayCount)
         {
             int deltaDay = (int)(new DateTime(
                     DateTime.Now.Year,
@@ -534,12 +534,12 @@ namespace CocoaFramework.Core
                 ModuleData.LastStatistics = DateTime.Now;
                 SaveData();
             }
-            if (range >= 30)
+            if (dayCount >= 30)
             {
                 return ModuleData!.Usage.Sum();
             }
             int count = 0;
-            for (int i = 0; i < range; i++)
+            for (int i = 0; i < dayCount; i++)
             {
                 count += ModuleData!.Usage[i];
             }
@@ -547,10 +547,10 @@ namespace CocoaFramework.Core
         }
 
         protected internal virtual void Init() { }
-        protected internal virtual bool Run(MessageSource src, QMessage msg) { return false; }
-        public virtual bool GActive(long groupID)
+        protected internal virtual bool OnMessage(MessageSource src, QMessage msg) { return false; }
+        public virtual bool GroupActivity(long groupID)
             => ModuleData!.ActiveGroup.Contains(groupID);
-        public bool UActive(long userID)
+        public bool UserActivity(long userID)
             => !ModuleData!.BanUser.Contains(userID);
     }
 

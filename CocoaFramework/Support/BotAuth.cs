@@ -38,29 +38,29 @@ namespace CocoaFramework.Support
             }
         }
 
-        public static void SetOwner(long qid)
+        public static void SetOwner(long qqID)
         {
-            Owner = qid;
-            BotReg.SetLong("CORE/OWNER", qid);
+            Owner = qqID;
+            BotReg.SetLong("CORE/OWNER", qqID);
         }
-        public static bool SetAdmin(long qid)
+        public static bool SetAdmin(long qqID)
         {
-            if (Admin.Contains(qid))
+            if (Admin.Contains(qqID))
             {
                 return false;
             }
             else
             {
-                Admin = Admin.Add(qid);
+                Admin = Admin.Add(qqID);
                 _ = DataManager.SaveData("AdminList", Admin);
                 return true;
             }
         }
-        public static bool RemoveAdmin(long qid)
+        public static bool RemoveAdmin(long qqID)
         {
-            if (Admin.Contains(qid))
+            if (Admin.Contains(qqID))
             {
-                Admin = Admin.Remove(qid);
+                Admin = Admin.Remove(qqID);
                 _ = DataManager.SaveData("AdminList", Admin);
                 return true;
             }

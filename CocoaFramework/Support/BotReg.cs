@@ -19,7 +19,7 @@ namespace CocoaFramework.Support
             _ = DataManager.SaveData("BotReg", data);
         }
 
-        public static bool Contains(string key)
+        public static bool ContainsKey(string key)
             => data.ContainsKey(key);
         public static string[] GetKeys()
             => data.Keys.ToArray();
@@ -216,7 +216,7 @@ namespace CocoaFramework.Support
 
         public static bool Remove(string key)
         {
-            if (Contains(key))
+            if (ContainsKey(key))
             {
                 data.Remove(key);
                 SaveData();

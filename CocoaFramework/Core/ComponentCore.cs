@@ -51,7 +51,7 @@ namespace CocoaFramework.Core
     {
         protected internal virtual void Init() { }
 
-        private readonly List<FieldInfo> fields = new();
+        private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
 
         internal void InitData()
@@ -60,7 +60,7 @@ namespace CocoaFramework.Core
             {
                 if (f.GetCustomAttributes<HostedDataAttribute>().Any())
                 {
-                    fields.Add(f);
+                    hostedFields.Add(f);
                 }
             }
             TypeName = GetType().Name;
@@ -72,7 +72,7 @@ namespace CocoaFramework.Core
             {
                 Directory.CreateDirectory($@"{DataManager.dataPath}ComponentData\{TypeName}");
             }
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 object? val = DataManager.LoadData($@"ComponentData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
                 if (val is not null)
@@ -83,7 +83,7 @@ namespace CocoaFramework.Core
         }
         internal void SaveData()
         {
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 _ = DataManager.SaveData($@"ComponentData\{TypeName}\Field_{f.Name}", f.GetValue(this));
             }

@@ -46,11 +46,11 @@ namespace CocoaFramework.Core
             Services = ImmutableArray.Create(services.ToArray());
         }
 
-        internal static void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
+        internal static void OnMessage(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
         {
             foreach (var s in Services)
             {
-                s.Run(src, msg, origMsg, processed, processModule);
+                s.OnMessage(src, msg, origMsg, processed, processModule);
             }
         }
     }
@@ -58,9 +58,9 @@ namespace CocoaFramework.Core
     public abstract class BotServiceBase
     {
         protected internal virtual void Init() { }
-        protected internal abstract void Run(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule);
+        protected internal abstract void OnMessage(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule);
 
-        private readonly List<FieldInfo> fields = new();
+        private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
 
         internal void InitData()
@@ -69,7 +69,7 @@ namespace CocoaFramework.Core
             {
                 if (f.GetCustomAttributes<HostedDataAttribute>().Any())
                 {
-                    fields.Add(f);
+                    hostedFields.Add(f);
                 }
             }
             TypeName = GetType().Name;
@@ -81,7 +81,7 @@ namespace CocoaFramework.Core
             {
                 Directory.CreateDirectory($@"{DataManager.dataPath}ServiceData\{TypeName}");
             }
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 object? val = DataManager.LoadData($@"ServiceData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
                 if (val is not null)
@@ -92,7 +92,7 @@ namespace CocoaFramework.Core
         }
         internal void SaveData()
         {
-            foreach (var f in fields)
+            foreach (var f in hostedFields)
             {
                 _ = DataManager.SaveData($@"ServiceData\{TypeName}\Field_{f.Name}", f.GetValue(this));
             }

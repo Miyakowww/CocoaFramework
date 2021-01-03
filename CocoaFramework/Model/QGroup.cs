@@ -46,46 +46,46 @@ namespace CocoaFramework.Model
         public async Task<int> SendVoiceAsync(string path)
             => await BotAPI.SendGroupMessageAsync(ID, await BotAPI.UploadVoiceAsync(UploadTarget.Group, path));
 
-        public IGroupMemberCardInfo GetMemberInfo(long uid)
-            => GetMemberInfoAsync(uid).Result;
+        public IGroupMemberCardInfo GetMemberCard(long qqID)
+            => GetMemberCardAsync(qqID).Result;
 
-        public Task<IGroupMemberCardInfo> GetMemberInfoAsync(long uid)
-            => BotAPI.GetGroupMemberInfoAsync(ID, uid);
+        public Task<IGroupMemberCardInfo> GetMemberCardAsync(long qqID)
+            => BotAPI.GetGroupMemberCardAsync(ID, qqID);
 
-        public void Mute(long uid, TimeSpan duration)
-            => MuteAsync(uid, duration);
+        public void MuteMember(long qqID, TimeSpan duration)
+            => MuteMemberAsync(qqID, duration);
 
-        public Task MuteAsync(long uid, TimeSpan duration)
-            => BotAPI.MuteAsync(ID, uid, duration);
+        public Task MuteMemberAsync(long qqID, TimeSpan duration)
+            => BotAPI.MuteGroupMemberAsync(ID, qqID, duration);
 
-        public void Unmute(long uid)
-            => UnmuteAsync(uid);
+        public void UnmuteMember(long qqID)
+            => UnmuteMemberAsync(qqID);
 
-        public Task UnmuteAsync(long uid)
-            => BotAPI.UnmuteAsync(ID, uid);
+        public Task UnmuteMemberAsync(long qqID)
+            => BotAPI.UnmuteGroupMemberAsync(ID, qqID);
 
-        public void MuteAll()
-            => MuteAllAsync();
+        public void MuteGroup()
+            => MuteGroupAsync();
 
-        public Task MuteAllAsync()
-            => BotAPI.MuteAllAsync(ID);
+        public Task MuteGroupAsync()
+            => BotAPI.MuteGroupAsync(ID);
 
-        public void UnmuteAll()
-            => UnmuteAllAsync();
+        public void UnmuteGroup()
+            => UnmuteGroupAsync();
 
-        public Task UnmuteAllAsync()
-            => BotAPI.UnmuteAllAsync(ID);
+        public Task UnmuteGroupAsync()
+            => BotAPI.UnmuteGroupAsync(ID);
 
-        public void Kick(long uid)
-            => KickAsync(uid);
+        public void KickMember(long qqID)
+            => KickMemberAsync(qqID);
 
-        public Task KickAsync(long uid)
-            => BotAPI.KickMemberAsync(ID, uid);
+        public Task KickMemberAsync(long qqID)
+            => BotAPI.KickGroupMemberAsync(ID, qqID);
 
-        public void Leave()
-            => LeaveAsync();
+        public void LeaveGroup()
+            => LeaveGroupAsync();
 
-        public Task LeaveAsync()
+        public Task LeaveGroupAsync()
             => BotAPI.LeaveGroupAsync(ID);
     }
 }

@@ -25,81 +25,81 @@ namespace CocoaFramework.Support
             return session!.HandleNewFriendApplyAsync(args, action);
         }
 
-        public static Task<int> SendFriendMessageAsync(long qid, string message)
+        public static Task<int> SendFriendMessageAsync(long qqID, string message)
         {
-            return session!.SendFriendMessageAsync(qid, new PlainMessage(message));
+            return session!.SendFriendMessageAsync(qqID, new PlainMessage(message));
         }
-        public static Task<int> SendFriendMessageAsync(long qid, params IMessageBase[] chain)
+        public static Task<int> SendFriendMessageAsync(long qqID, params IMessageBase[] chain)
         {
-            return session!.SendFriendMessageAsync(qid, chain);
+            return session!.SendFriendMessageAsync(qqID, chain);
         }
-        public static Task<int> SendFriendMessageAsync(int quote, long qid, string message)
+        public static Task<int> SendFriendMessageAsync(int quote, long qqID, string message)
         {
-            return session!.SendFriendMessageAsync(qid, new IMessageBase[] { new PlainMessage(message) }, quote);
+            return session!.SendFriendMessageAsync(qqID, new IMessageBase[] { new PlainMessage(message) }, quote);
         }
-        public static Task<int> SendFriendMessageAsync(int quote, long qid, params IMessageBase[] chain)
+        public static Task<int> SendFriendMessageAsync(int quote, long qqID, params IMessageBase[] chain)
         {
-            return session!.SendFriendMessageAsync(qid, chain, quote);
-        }
-
-        public static Task<int> SendTempMessageAsync(long qid, long gid, string message)
-        {
-            return session!.SendTempMessageAsync(qid, gid, new PlainMessage(message));
-        }
-        public static Task<int> SendTempMessageAsync(long qid, long gid, params IMessageBase[] chain)
-        {
-            return session!.SendTempMessageAsync(qid, gid, chain);
-        }
-        public static Task<int> SendTempMessageAsync(int quote, long qid, long gid, string message)
-        {
-            return session!.SendTempMessageAsync(qid, gid, new IMessageBase[] { new PlainMessage(message) }, quote);
-        }
-        public static Task<int> SendTempMessageAsync(int quote, long qid, long gid, params IMessageBase[] chain)
-        {
-            return session!.SendTempMessageAsync(qid, gid, chain, quote);
+            return session!.SendFriendMessageAsync(qqID, chain, quote);
         }
 
-        public static Task<int> SendPrivateMessageAsync(long qid, string message)
+        public static Task<int> SendTempMessageAsync(long qqID, long groupID, string message)
         {
-            return SendPrivateMessageAsync(qid, new PlainMessage(message));
+            return session!.SendTempMessageAsync(qqID, groupID, new PlainMessage(message));
         }
-        public static async Task<int> SendPrivateMessageAsync(long qid, params IMessageBase[] chain)
+        public static Task<int> SendTempMessageAsync(long qqID, long groupID, params IMessageBase[] chain)
         {
-            if (BotInfo.HasFriend(qid))
+            return session!.SendTempMessageAsync(qqID, groupID, chain);
+        }
+        public static Task<int> SendTempMessageAsync(int quote, long qqID, long groupID, string message)
+        {
+            return session!.SendTempMessageAsync(qqID, groupID, new IMessageBase[] { new PlainMessage(message) }, quote);
+        }
+        public static Task<int> SendTempMessageAsync(int quote, long qqID, long groupID, params IMessageBase[] chain)
+        {
+            return session!.SendTempMessageAsync(qqID, groupID, chain, quote);
+        }
+
+        public static Task<int> SendPrivateMessageAsync(long qqID, string message)
+        {
+            return SendPrivateMessageAsync(qqID, new PlainMessage(message));
+        }
+        public static async Task<int> SendPrivateMessageAsync(long qqID, params IMessageBase[] chain)
+        {
+            if (BotInfo.HasFriend(qqID))
             {
-                return await session!.SendFriendMessageAsync(qid, chain);
+                return await session!.SendFriendMessageAsync(qqID, chain);
             }
             int id = 0;
-            long[] tmp = BotInfo.GetTempPath(qid);
-            foreach (var t in tmp)
+            long[] tempPath = BotInfo.GetTempPath(qqID);
+            foreach (var t in tempPath)
             {
                 try
                 {
-                    id = await SendTempMessageAsync(qid, t, chain);
+                    id = await SendTempMessageAsync(qqID, t, chain);
                     break;
                 }
                 catch { }
             }
             return id;
         }
-        public static Task<int> SendPrivateMessageAsync(int quote, long qid, string message)
+        public static Task<int> SendPrivateMessageAsync(int quote, long qqID, string message)
         {
-            return SendPrivateMessageAsync(quote, qid, new PlainMessage(message));
+            return SendPrivateMessageAsync(quote, qqID, new PlainMessage(message));
         }
-        public static async Task<int> SendPrivateMessageAsync(int quote, long qid, params IMessageBase[] chain)
+        public static async Task<int> SendPrivateMessageAsync(int quote, long qqID, params IMessageBase[] chain)
         {
 
-            if (BotInfo.HasFriend(qid))
+            if (BotInfo.HasFriend(qqID))
             {
-                return await session!.SendFriendMessageAsync(qid, chain, quote);
+                return await session!.SendFriendMessageAsync(qqID, chain, quote);
             }
             int id = 0;
-            long[] tmp = BotInfo.GetTempPath(qid);
-            foreach (var t in tmp)
+            long[] tempPath = BotInfo.GetTempPath(qqID);
+            foreach (var t in tempPath)
             {
                 try
                 {
-                    id = await SendTempMessageAsync(quote, qid, t, chain);
+                    id = await SendTempMessageAsync(quote, qqID, t, chain);
                     break;
                 }
                 catch { }
@@ -107,21 +107,21 @@ namespace CocoaFramework.Support
             return id;
         }
 
-        public static Task<int> SendGroupMessageAsync(long gid, string message)
+        public static Task<int> SendGroupMessageAsync(long groupID, string message)
         {
-            return SendGroupMessageAsync(gid, new PlainMessage(message));
+            return SendGroupMessageAsync(groupID, new PlainMessage(message));
         }
-        public static Task<int> SendGroupMessageAsync(long gid, params IMessageBase[] chain)
+        public static Task<int> SendGroupMessageAsync(long groupID, params IMessageBase[] chain)
         {
-            return session!.SendGroupMessageAsync(gid, chain);
+            return session!.SendGroupMessageAsync(groupID, chain);
         }
-        public static Task<int> SendGroupMessageAsync(int quote, long gid, string message)
+        public static Task<int> SendGroupMessageAsync(int quote, long groupID, string message)
         {
-            return SendGroupMessageAsync(quote, gid, new PlainMessage(message));
+            return SendGroupMessageAsync(quote, groupID, new PlainMessage(message));
         }
-        public static Task<int> SendGroupMessageAsync(int quote, long gid, params IMessageBase[] chain)
+        public static Task<int> SendGroupMessageAsync(int quote, long groupID, params IMessageBase[] chain)
         {
-            return session!.SendGroupMessageAsync(gid, chain, quote);
+            return session!.SendGroupMessageAsync(groupID, chain, quote);
         }
 
         public static Task<IFriendInfo[]> GetFriendListAsync()
@@ -129,13 +129,13 @@ namespace CocoaFramework.Support
             return session!.GetFriendListAsync();
         }
 
-        public static Task<IGroupMemberInfo[]> GetGroupMemberListAsync(long gid)
+        public static Task<IGroupMemberInfo[]> GetGroupMemberListAsync(long groupID)
         {
-            return session!.GetGroupMemberListAsync(gid);
+            return session!.GetGroupMemberListAsync(groupID);
         }
-        public static Task<IGroupMemberCardInfo> GetGroupMemberInfoAsync(long gid, long uid)
+        public static Task<IGroupMemberCardInfo> GetGroupMemberCardAsync(long groupID, long qqID)
         {
-            return session!.GetGroupMemberInfoAsync(uid, gid);
+            return session!.GetGroupMemberInfoAsync(qqID, groupID);
         }
         public static Task<IGroupInfo[]> GetGroupListAsync()
         {
@@ -147,38 +147,36 @@ namespace CocoaFramework.Support
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             return await session!.UploadPictureAsync(target, fs);
         }
-
         public static async Task<VoiceMessage> UploadVoiceAsync(UploadTarget target, string path)
         {
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             return await session!.UploadVoiceAsync(target, fs);
         }
 
-        public static Task KickMemberAsync(long gid, long uid)
+        public static Task KickGroupMemberAsync(long groupID, long qqID)
         {
-            return session!.KickMemberAsync(uid, gid);
+            return session!.KickMemberAsync(qqID, groupID);
+        }
+        public static Task LeaveGroupAsync(long groupID)
+        {
+            return session!.LeaveGroupAsync(groupID);
         }
 
-        public static Task LeaveGroupAsync(long gid)
+        public static Task MuteGroupMemberAsync(long groupID, long qqID, TimeSpan duration)
         {
-            return session!.LeaveGroupAsync(gid);
+            return session!.MuteAsync(qqID, groupID, duration);
         }
-
-        public static Task MuteAsync(long gid, long uid, TimeSpan duration)
+        public static Task UnmuteGroupMemberAsync(long groupID, long qqID)
         {
-            return session!.MuteAsync(uid, gid, duration);
+            return session!.UnmuteAsync(qqID, groupID);
         }
-        public static Task UnmuteAsync(long gid, long uid)
+        public static Task MuteGroupAsync(long groupID)
         {
-            return session!.UnmuteAsync(uid, gid);
+            return session!.MuteAllAsync(groupID);
         }
-        public static Task MuteAllAsync(long gid)
+        public static Task UnmuteGroupAsync(long groupID)
         {
-            return session!.MuteAllAsync(gid);
-        }
-        public static Task UnmuteAllAsync(long gid)
-        {
-            return session!.UnmuteAllAsync(gid);
+            return session!.UnmuteAllAsync(groupID);
         }
     }
 }

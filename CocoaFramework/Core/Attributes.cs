@@ -37,7 +37,7 @@ namespace CocoaFramework.Core
         public Regex regex;
         public RegexRouteAttribute(string pattern)
         {
-            regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
         public RegexRouteAttribute(string pattern, RegexOptions options)
         {

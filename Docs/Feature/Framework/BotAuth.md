@@ -18,4 +18,4 @@
 - SetOwner：设置 Owner
 - SetAdmin：添加 Admin
 - RemoveAdmin：移除 Admin
-- RemoveAdminAt：根据下标移除 Admin
+- RemoveAdminAt：根据索引移除 Admin
