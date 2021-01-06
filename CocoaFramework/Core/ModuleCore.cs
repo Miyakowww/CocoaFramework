@@ -50,6 +50,7 @@ namespace CocoaFramework.Core
                 module.ShowOnModuleList = m.ShowOnModuleList;
                 module.ProcessLevel = m.ProcessLevel;
                 module.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
+                module.ActivityOverrode = t.GetMethod("GroupActivity", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
                 module.InitData();
                 module.Init();
                 modules.Add(module);
@@ -425,7 +426,7 @@ namespace CocoaFramework.Core
         private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
 
-        public bool ActivityOverrode { get; internal set; }// => GetType().GetMethod("GroupActivity", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
+        public bool ActivityOverrode { get; internal set; }
 
         internal void InitData()
         {
