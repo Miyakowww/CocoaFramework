@@ -9,6 +9,6 @@ namespace CocoaFramework.Core.ProcessingModel
     public class NotFit
     {
         private NotFit() { }
-        public readonly NotFit Instance = new();
+        public static readonly NotFit Instance = new();
     }
 }
