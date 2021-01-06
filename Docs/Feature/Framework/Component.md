@@ -16,5 +16,5 @@ Component 是 Cocoa Framework 的自定义组件
 
 <br>
 
-## Init
-此方法会在框架初始化时被调用，重载此方法可用于初始化
+## BotComponentBase.Init
+此方法会在框架初始化时被调用，重写此方法可用于初始化

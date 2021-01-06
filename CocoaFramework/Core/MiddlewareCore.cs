@@ -21,6 +21,7 @@ namespace CocoaFramework.Core
 
             foreach (var m in Middlewares)
             {
+                m.onMessageIsThreadSafe = m.GetType().GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
                 m.InitData();
                 m.Init();
             }
@@ -30,7 +31,7 @@ namespace CocoaFramework.Core
         {
             foreach (var m in Middlewares)
             {
-                bool ctn = m.OnMessage(ref src, ref msg);
+                bool ctn = m.OnMessageSafe(ref src, ref msg);
                 if (!ctn)
                 {
                     return false;
@@ -43,10 +44,29 @@ namespace CocoaFramework.Core
     public abstract class BotMiddlewareBase
     {
         protected internal virtual void Init() { }
+        [ThreadSafe]
         protected internal virtual bool OnMessage(ref MessageSource src, ref QMessage msg) { return true; }
 
         private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
+
+        internal bool onMessageIsThreadSafe;
+        internal readonly object onMessageLock = new();
+
+        internal bool OnMessageSafe(ref MessageSource src, ref QMessage msg)
+        {
+            if (onMessageIsThreadSafe)
+            {
+                return OnMessage(ref src, ref msg);
+            }
+            else
+            {
+                lock (onMessageLock)
+                {
+                    return OnMessage(ref src, ref msg);
+                }
+            }
+        }
 
         internal void InitData()
         {

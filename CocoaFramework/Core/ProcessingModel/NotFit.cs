@@ -6,5 +6,9 @@ using System.Threading.Tasks;
 
 namespace CocoaFramework.Core.ProcessingModel
 {
-    public class NotFit { }
+    public class NotFit
+    {
+        private NotFit() { }
+        public readonly NotFit Instance = new();
+    }
 }

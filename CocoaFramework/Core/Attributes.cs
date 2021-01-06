@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace CocoaFramework.Core
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class DisabledAttribute : Attribute { }
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class BotComponentAttribute : Attribute { }
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class BotModuleAttribute : Attribute
     {
         public string Name { get; }
@@ -45,9 +45,12 @@ namespace CocoaFramework.Core
         }
     }
 
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class BotServiceAttribute : Attribute { }
 
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field)]
     public sealed class HostedDataAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class ThreadSafeAttribute : Attribute { }
 }

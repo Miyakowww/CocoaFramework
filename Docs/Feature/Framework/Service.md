@@ -16,16 +16,18 @@
 
 <br>
 
-## Init
-此方法会在框架初始化时被调用，重载此方法可用于初始化
+## BotServiceBase.Init
+此方法会在框架初始化时被调用，重写此方法可用于初始化
 
 <br>
 
-## OnMessage
-Service 需要重载此方法，用于总结本次处理的结果
+## BotServiceBase.OnMessage
+重写此方法以在消息处理完后获取相关信息
 - 参数
     - src：消息来源
     - msg：消息内容
     - origMsg：消息经过处理前的内容
     - processed：消息是否被模块处理
     - processModule：处理消息的模块，如果消息没被处理，本参数为 null
+- 线程安全性
+    - 此方法会以线程安全的方式调用。如果您确定重写方法是线程安全的，也可以添加 ThreadSafe 特性使框架以更高效的方式调用

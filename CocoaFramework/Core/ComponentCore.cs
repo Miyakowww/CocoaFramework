@@ -24,13 +24,11 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
-                if (d is not null)
+                if (t.GetCustomAttribute<DisabledAttribute>() is not null)
                 {
                     continue;
                 }
-                BotComponentAttribute? s = t.GetCustomAttribute<BotComponentAttribute>();
-                if (s is null)
+                if (t.GetCustomAttribute<BotComponentAttribute>() is null)
                 {
                     continue;
                 }

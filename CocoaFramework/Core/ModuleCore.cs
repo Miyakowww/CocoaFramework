@@ -18,7 +18,7 @@ namespace CocoaFramework.Core
     {
         public static ImmutableArray<BotModuleBase> Modules { get; private set; }
         private static readonly Dictionary<BotModuleBase, List<RegexRouteInfo>> routes = new();
-        private static readonly List<Func<MessageSource, QMessage, LockState>> locks = new();
+        private static readonly List<Func<MessageSource, QMessage, LockState>> messageLocks = new();
 
         internal static void Init(Assembly assembly)
         {
@@ -30,8 +30,7 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
-                if (d is not null)
+                if (t.GetCustomAttribute<DisabledAttribute>() is not null)
                 {
                     continue;
                 }
@@ -50,6 +49,7 @@ namespace CocoaFramework.Core
                 module.GroupAvailable = m.GroupAvailable;
                 module.ShowOnModuleList = m.ShowOnModuleList;
                 module.ProcessLevel = m.ProcessLevel;
+                module.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
                 module.InitData();
                 module.Init();
                 modules.Add(module);
@@ -58,8 +58,7 @@ namespace CocoaFramework.Core
                 MethodInfo[] methods = module.GetType().GetMethods();
                 foreach (var method in methods)
                 {
-                    d = method.GetCustomAttribute<DisabledAttribute>();
-                    if (d is not null)
+                    if (method.GetCustomAttribute<DisabledAttribute>() is not null)
                     {
                         continue;
                     }
@@ -71,7 +70,7 @@ namespace CocoaFramework.Core
                         {
                             regexs[i] = rs[i].regex;
                         }
-                        routes[module].Add(new RegexRouteInfo(module, method, regexs));
+                        routes[module].Add(new RegexRouteInfo(module, method, regexs, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
                     }
                 }
             }
@@ -87,12 +86,12 @@ namespace CocoaFramework.Core
         internal static int OnMessage(MessageSource src, QMessage msg)
         {
             // Lock Run
-            for (int i = locks.Count - 1; i >= 0; i--)
+            for (int i = messageLocks.Count - 1; i >= 0; i--)
             {
-                LockState state = locks[i](src, msg);
+                LockState state = messageLocks[i](src, msg);
                 if (state.Check(0b10))
                 {
-                    locks.RemoveAt(i);
+                    messageLocks.RemoveAt(i);
                 }
                 if (state.Check(0b01))
                 {
@@ -129,7 +128,7 @@ namespace CocoaFramework.Core
                                 return i;
                             }
                         }
-                        bool stat = m.OnMessage(src, msg);
+                        bool stat = m.OnMessageSafe(src, msg);
                         if (stat)
                         {
                             m.AddUsage();
@@ -147,25 +146,25 @@ namespace CocoaFramework.Core
 
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun)
-            => locks.Add(lockRun);
+            => messageLocks.Add(lockRun);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate)
-            => locks.Add(new MessageLock(lockRun, predicate, TimeSpan.Zero, null).Run);
+            => messageLocks.Add(new MessageLock(lockRun, predicate, TimeSpan.Zero, null).Run);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target)
-            => locks.Add(new MessageLock(lockRun, target.Fit, TimeSpan.Zero, null).Run);
+            => messageLocks.Add(new MessageLock(lockRun, target.Fit, TimeSpan.Zero, null).Run);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src)
-            => locks.Add(new MessageLock(lockRun, s => s.Equals(src), TimeSpan.Zero, null).Run);
+            => messageLocks.Add(new MessageLock(lockRun, s => s.Equals(src), TimeSpan.Zero, null).Run);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, Func<MessageSource, bool> predicate, TimeSpan timeout, Action onTimeout = null!)
-            => locks.Add(new MessageLock(lockRun, predicate, timeout, onTimeout).Run);
+            => messageLocks.Add(new MessageLock(lockRun, predicate, timeout, onTimeout).Run);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, ListeningTarget target, TimeSpan timeout, Action onTimeout = null!)
-            => locks.Add(new MessageLock(lockRun, target.Fit, timeout, onTimeout).Run);
+            => messageLocks.Add(new MessageLock(lockRun, target.Fit, timeout, onTimeout).Run);
 
         public static void AddLock(Func<MessageSource, QMessage, LockState> lockRun, MessageSource src, TimeSpan timeout, Action onTimeout = null!)
-            => locks.Add(new MessageLock(lockRun, s => s.Equals(src), timeout, onTimeout).Run);
+            => messageLocks.Add(new MessageLock(lockRun, s => s.Equals(src), timeout, onTimeout).Run);
 
 
         private class MessageLock
@@ -193,7 +192,7 @@ namespace CocoaFramework.Core
                         await Task.Delay(this.timeout);
                         if (counter == count && !running)
                         {
-                            locks.Remove(Run);
+                            messageLocks.Remove(Run);
                             this.onTimeout?.Invoke();
                         }
                     });
@@ -227,7 +226,7 @@ namespace CocoaFramework.Core
                                 await Task.Delay(100);
                                 if (counter == count && !running)
                                 {
-                                    locks.Remove(Run);
+                                    messageLocks.Remove(Run);
                                     onTimeout?.Invoke();
                                 }
                             }).Start();
@@ -264,12 +263,16 @@ namespace CocoaFramework.Core
             private readonly bool isEnumerable;
             private readonly bool isValueType;
             private readonly bool isVoid;
+            private readonly bool isThreadSafe;
 
-            public RegexRouteInfo(BotModuleBase module, MethodInfo route, Regex[] regexs)
+            private readonly object _lock = new();
+
+            public RegexRouteInfo(BotModuleBase module, MethodInfo route, Regex[] regexs, bool isThreadSafe)
             {
                 this.module = module;
                 this.route = route;
                 this.regexs = regexs;
+                this.isThreadSafe = isThreadSafe;
                 ParameterInfo[] parameters = route.GetParameters();
                 argCount = parameters.Length;
                 argsIndex = new List<(int gnum, int argIndex)>[regexs.Length];
@@ -343,18 +346,40 @@ namespace CocoaFramework.Core
                     }
                     else
                     {
-                        if (isValueType)
+                        if (isThreadSafe)
                         {
-                            return !route.Invoke(module, args)!.Equals(Activator.CreateInstance(route.ReturnType));
-                        }
-                        else if (isVoid)
-                        {
-                            route.Invoke(module, args);
-                            return true;
+                            if (isValueType)
+                            {
+                                return !route.Invoke(module, args)!.Equals(Activator.CreateInstance(route.ReturnType));
+                            }
+                            else if (isVoid)
+                            {
+                                route.Invoke(module, args);
+                                return true;
+                            }
+                            else
+                            {
+                                return route.Invoke(module, args) is not null;
+                            }
                         }
                         else
                         {
-                            return route.Invoke(module, args) is not null;
+                            lock (_lock)
+                            {
+                                if (isValueType)
+                                {
+                                    return !route.Invoke(module, args)!.Equals(Activator.CreateInstance(route.ReturnType));
+                                }
+                                else if (isVoid)
+                                {
+                                    route.Invoke(module, args);
+                                    return true;
+                                }
+                                else
+                                {
+                                    return route.Invoke(module, args) is not null;
+                                }
+                            }
                         }
                     }
                 }
@@ -400,7 +425,7 @@ namespace CocoaFramework.Core
         private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
 
-        public bool ActivityOverrode => GetType().GetMethod("GroupActivity", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
+        public bool ActivityOverrode { get; internal set; }// => GetType().GetMethod("GroupActivity", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
 
         internal void InitData()
         {
@@ -490,64 +515,92 @@ namespace CocoaFramework.Core
             return false;
         }
 
+        internal readonly object usageLock = new();
+        internal readonly object onMessageLock = new();
+
+        internal bool onMessageIsThreadSafe;
+
         internal void AddUsage()
         {
-            int deltaDay = (int)(new DateTime(
-                    DateTime.Now.Year,
-                    DateTime.Now.Month,
-                    DateTime.Now.Day)
-                - new DateTime(
-                    ModuleData!.LastStatistics.Year,
-                    ModuleData!.LastStatistics.Month,
-                    ModuleData!.LastStatistics.Day)
-                ).TotalDays;
-            if (deltaDay > 0)
+            lock (usageLock)
             {
-                ModuleData.Usage.InsertRange(0, new int[deltaDay]);
-                if (ModuleData.Usage.Count > 30)
+                int deltaDay = (int)(new DateTime(
+                        DateTime.Now.Year,
+                        DateTime.Now.Month,
+                        DateTime.Now.Day)
+                    - new DateTime(
+                        ModuleData!.LastStatistics.Year,
+                        ModuleData!.LastStatistics.Month,
+                        ModuleData!.LastStatistics.Day)
+                    ).TotalDays;
+                if (deltaDay > 0)
                 {
-                    ModuleData.Usage.RemoveRange(30, ModuleData.Usage.Count - 30);
+                    ModuleData.Usage.InsertRange(0, new int[deltaDay]);
+                    if (ModuleData.Usage.Count > 30)
+                    {
+                        ModuleData.Usage.RemoveRange(30, ModuleData.Usage.Count - 30);
+                    }
                 }
+                ModuleData.Usage[0]++;
+                ModuleData.LastStatistics = DateTime.Now;
             }
-            ModuleData.Usage[0]++;
-            ModuleData.LastStatistics = DateTime.Now;
             SaveData();
         }
         public int GetUsage(int dayCount)
         {
-            int deltaDay = (int)(new DateTime(
-                    DateTime.Now.Year,
-                    DateTime.Now.Month,
-                    DateTime.Now.Day)
-                - new DateTime(
-                    ModuleData!.LastStatistics.Year,
-                    ModuleData!.LastStatistics.Month,
-                    ModuleData!.LastStatistics.Day)
-                ).TotalDays;
-            if (deltaDay > 0)
+            lock (usageLock)
             {
-                ModuleData.Usage.InsertRange(0, new int[deltaDay]);
-                if (ModuleData.Usage.Count > 30)
+                int deltaDay = (int)(new DateTime(
+                        DateTime.Now.Year,
+                        DateTime.Now.Month,
+                        DateTime.Now.Day)
+                    - new DateTime(
+                        ModuleData!.LastStatistics.Year,
+                        ModuleData!.LastStatistics.Month,
+                        ModuleData!.LastStatistics.Day)
+                    ).TotalDays;
+                if (deltaDay > 0)
                 {
-                    ModuleData.Usage.RemoveRange(30, ModuleData.Usage.Count - 30);
+                    ModuleData.Usage.InsertRange(0, new int[deltaDay]);
+                    if (ModuleData.Usage.Count > 30)
+                    {
+                        ModuleData.Usage.RemoveRange(30, ModuleData.Usage.Count - 30);
+                    }
+                    ModuleData.LastStatistics = DateTime.Now;
+                    SaveData();
                 }
-                ModuleData.LastStatistics = DateTime.Now;
-                SaveData();
+                if (dayCount >= 30)
+                {
+                    return ModuleData!.Usage.Sum();
+                }
+                int count = 0;
+                for (int i = 0; i < dayCount; i++)
+                {
+                    count += ModuleData!.Usage[i];
+                }
+                return count;
             }
-            if (dayCount >= 30)
-            {
-                return ModuleData!.Usage.Sum();
-            }
-            int count = 0;
-            for (int i = 0; i < dayCount; i++)
-            {
-                count += ModuleData!.Usage[i];
-            }
-            return count;
         }
 
         protected internal virtual void Init() { }
+        [ThreadSafe]
         protected internal virtual bool OnMessage(MessageSource src, QMessage msg) { return false; }
+
+        internal bool OnMessageSafe(MessageSource src, QMessage msg)
+        {
+            if (onMessageIsThreadSafe)
+            {
+                return OnMessage(src, msg);
+            }
+            else
+            {
+                lock (onMessageLock)
+                {
+                    return OnMessage(src, msg);
+                }
+            }
+        }
+
         public virtual bool GroupActivity(long groupID)
             => ModuleData!.ActiveGroup.Contains(groupID);
         public bool UserActivity(long userID)

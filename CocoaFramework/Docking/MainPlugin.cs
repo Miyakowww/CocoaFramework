@@ -83,13 +83,13 @@ namespace CocoaFramework.Docking
 
         public async Task<bool> BotKickedOut(MiraiHttpSession session, IBotKickedOutEventArgs e)
         {
-            await BotInfo.ReloadGroupMembers(e.Group.Id);
+            await BotInfo.ReloadAllGroupMembers();
             return true;
         }
 
         public async Task<bool> BotPositiveLeaveGroup(MiraiHttpSession session, IBotPositiveLeaveGroupEventArgs e)
         {
-            await BotInfo.ReloadGroupMembers(e.Group.Id);
+            await BotInfo.ReloadAllGroupMembers();
             return true;
         }
 

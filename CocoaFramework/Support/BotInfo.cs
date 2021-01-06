@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CocoaFramework.Support
 {
     public static class BotInfo
     {
-        private static readonly Dictionary<long, HashSet<long>> groupMembers = new();
-        private static readonly HashSet<long> friends = new();
+        private static Dictionary<long, HashSet<long>>? groupMembers;
+        private static ImmutableHashSet<long>? friends;
 
         public static async Task ReloadAll()
         {
@@ -22,22 +25,22 @@ namespace CocoaFramework.Support
 
         public static async Task ReloadAllGroupMembers()
         {
-            groupMembers.Clear();
+            Dictionary<long, HashSet<long>> _groupMembers = new();
             foreach (var info in await BotAPI.GetGroupListAsync())
             {
-                groupMembers.Add(info.Id, new((await BotAPI.GetGroupMemberListAsync(info.Id)).Select(i => i.Id)));
+                _groupMembers.Add(info.Id, new((await BotAPI.GetGroupMemberListAsync(info.Id)).Select(i => i.Id)));
             }
+            groupMembers = _groupMembers;
         }
         public static async Task<bool> ReloadGroupMembers(long groupID)
         {
-            if (groupMembers.ContainsKey(groupID))
+            if (groupMembers is null)
+            {
+                return false;
+            }
+            if ((await BotAPI.GetGroupListAsync()).Where(i => i.Id == groupID).Any())
             {
                 groupMembers[groupID] = new((await BotAPI.GetGroupMemberListAsync(groupID)).Select(i => i.Id));
-                return true;
-            }
-            else if ((await BotAPI.GetGroupListAsync()).Where(i => i.Id == groupID).Any())
-            {
-                groupMembers.Add(groupID, new((await BotAPI.GetGroupMemberListAsync(groupID)).Select(i => i.Id)));
                 return true;
             }
             return false;
@@ -45,26 +48,23 @@ namespace CocoaFramework.Support
 
         public static async Task ReloadFriends()
         {
-            friends.Clear();
-            foreach (var info in await BotAPI.GetFriendListAsync())
-            {
-                friends.Add(info.Id);
-            }
+            friends = (await BotAPI.GetFriendListAsync()).Select(i => i.Id).ToImmutableHashSet();
         }
 
         public static bool HasGroup(long groupID)
-            => groupMembers.ContainsKey(groupID);
+            => (groupMembers?.ContainsKey(groupID)).GetValueOrDefault(false);
 
         public static bool HasGroupMember(long groupID, long memberID)
-            => groupMembers.ContainsKey(groupID) && groupMembers[groupID].Contains(memberID);
+            => (groupMembers?.ContainsKey(groupID)).GetValueOrDefault(false) && groupMembers![groupID].Contains(memberID);
 
         public static bool HasFriend(long qqID)
-            => friends.Contains(qqID);
+            => (friends?.Contains(qqID)).GetValueOrDefault(false);
 
         public static long[] GetTempPath(long qqID)
-            => groupMembers
+            => groupMembers?
             .Where(p => p.Value.Contains(qqID))
             .Select(p => p.Key)
-            .ToArray();
+            .ToArray()
+            is long[] retval ? retval : Array.Empty<long>();
     }
 }

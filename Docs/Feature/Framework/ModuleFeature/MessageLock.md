@@ -21,3 +21,8 @@ LockState 是表示锁处理状态的枚举，也是锁目标方法的返回值�
     - NotFinished：还未处理完成
     - Continue：继续将消息传递给下一个锁
     - ContinueAndRemove：继续将消息传递给下一个锁，并移除当前锁
+
+<br>
+
+## 线程安全性
+MessageLock 不会以线程安全的方式调用，需自行处理线程安全问题

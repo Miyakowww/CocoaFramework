@@ -18,3 +18,8 @@ yield return 将作为 Meeting 向管理器传递状态的方式
     - [NotFit](./ProcessingModel/NotFit.md)：使管理器返回 [LockState](./MessageLock.md).Continue。此次返回会中断执行，直到有来自监听目标的消息
     - IEnumerator 或 IEnumerable：将给定的枚举器作为子 Meeting，此枚举器的 Next 方法会被立即调用。借助 [GetValue](./ProcessingModel/GetValue.md) 可实现 Meeting 间通信
     - null：此次返回会中断执行，直到有来自监听目标的消息
+
+<br>
+
+## 线程安全性
+Meeting 是线程安全的

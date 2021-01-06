@@ -21,6 +21,8 @@ namespace CocoaFramework.Core.ProcessingModel
         private bool running = false;
         private bool finished = false;
 
+        private readonly object _lock = new();
+
         private Meeting(ListeningTarget target, IEnumerator proc)
         {
             this.target = target;
@@ -36,6 +38,14 @@ namespace CocoaFramework.Core.ProcessingModel
 
         public LockState Run(MessageSource? src, QMessage? msg)
         {
+            lock (_lock)
+            {
+                return InternalRun(src, msg);
+            }
+        }
+
+        private LockState InternalRun(MessageSource? src, QMessage? msg)
+        {
             if (finished)
             {
                 return LockState.Continue;
@@ -47,7 +57,7 @@ namespace CocoaFramework.Core.ProcessingModel
             running = true;
             if (child is not null)
             {
-                LockState state = child.Run(src, msg);
+                LockState state = child.InternalRun(src, msg);
                 if (state == LockState.Finished)
                 {
                     child = null;
@@ -69,7 +79,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 if (proc.Current is MessageReceiver rec)
                 {
                     receiver = rec;
-                    LockState state = Run(src, msg);
+                    LockState state = InternalRun(src, msg);
                     running = false;
                     return state;
                 }
@@ -80,7 +90,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 if (proc.Current is TimeSpan tout)
                 {
                     timeout = tout;
-                    LockState state = Run(src, msg);
+                    LockState state = InternalRun(src, msg);
                     running = false;
                     return state;
                 }
@@ -92,7 +102,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 if (proc.Current is IEnumerator subm)
                 {
                     Meeting m = new Meeting(target, subm, root);
-                    LockState state = m.Run(src, msg);
+                    LockState state = m.InternalRun(src, msg);
                     if (state != LockState.Finished)
                     {
                         counter++;
@@ -102,7 +112,7 @@ namespace CocoaFramework.Core.ProcessingModel
                     }
                     else
                     {
-                        state = Run(src, msg);
+                        state = InternalRun(src, msg);
                         running = false;
                         return state;
                     }
@@ -110,7 +120,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 if (proc.Current is IEnumerable subma)
                 {
                     Meeting m = new Meeting(target, subma.GetEnumerator(), root);
-                    LockState state = m.Run(src, msg);
+                    LockState state = m.InternalRun(src, msg);
                     if (state != LockState.Finished)
                     {
                         counter++;
@@ -120,7 +130,7 @@ namespace CocoaFramework.Core.ProcessingModel
                     }
                     else
                     {
-                        state = Run(src, msg);
+                        state = InternalRun(src, msg);
                         running = false;
                         return state;
                     }
@@ -162,7 +172,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 return;
             }
             Meeting m = new Meeting(ListeningTarget.FromTarget(src)!, proc);
-            if (m.Run(src, null) != LockState.Finished)
+            if (m.InternalRun(src, null) != LockState.Finished)
             {
                 ModuleCore.AddLock(m.Run);
             }

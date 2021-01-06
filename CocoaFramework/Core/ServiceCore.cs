@@ -25,19 +25,18 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                DisabledAttribute? d = t.GetCustomAttribute<DisabledAttribute>();
-                if (d is not null)
+                if (t.GetCustomAttribute<DisabledAttribute>() is not null)
                 {
                     continue;
                 }
-                BotServiceAttribute? s = t.GetCustomAttribute<BotServiceAttribute>();
-                if (s is null)
+                if (t.GetCustomAttribute<BotServiceAttribute>() is null)
                 {
                     continue;
                 }
                 BotServiceBase? service = Activator.CreateInstance(t) as BotServiceBase;
                 if (service is not null)
                 {
+                    service.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
                     service.InitData();
                     service.Init();
                     services.Add(service);
@@ -50,7 +49,7 @@ namespace CocoaFramework.Core
         {
             foreach (var s in Services)
             {
-                s.OnMessage(src, msg, origMsg, processed, processModule);
+                s.OnMessageSafe(src, msg, origMsg, processed, processModule);
             }
         }
     }
@@ -58,10 +57,29 @@ namespace CocoaFramework.Core
     public abstract class BotServiceBase
     {
         protected internal virtual void Init() { }
-        protected internal abstract void OnMessage(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule);
+        [ThreadSafe]
+        protected internal virtual void OnMessage(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule) { }
 
         private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
+
+        internal bool onMessageIsThreadSafe;
+        internal readonly object onMessaeLock = new();
+
+        internal void OnMessageSafe(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
+        {
+            if (onMessageIsThreadSafe)
+            {
+                OnMessage(src, msg, origMsg, processed, processModule);
+            }
+            else
+            {
+                lock (onMessaeLock)
+                {
+                    OnMessage(src, msg, origMsg, processed, processModule);
+                }
+            }
+        }
 
         internal void InitData()
         {

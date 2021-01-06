@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,11 +8,11 @@ namespace CocoaFramework.Support
 {
     public static class BotReg
     {
-        private static Dictionary<string, string> data = new();
+        private static ConcurrentDictionary<string, string> data = new();
 
         internal static void Init()
         {
-            data = DataManager.LoadData<Dictionary<string, string>>("BotReg").Result ?? data;
+            data = DataManager.LoadData<ConcurrentDictionary<string, string>>("BotReg").Result ?? data;
         }
 
         private static void SaveData()
@@ -43,14 +44,7 @@ namespace CocoaFramework.Support
         }
         public static void SetString(string key, string val)
         {
-            if (data.ContainsKey(key))
-            {
-                data[key] = val;
-            }
-            else
-            {
-                data.Add(key, val);
-            }
+            data[key] = val;
             SaveData();
         }
 
@@ -75,14 +69,7 @@ namespace CocoaFramework.Support
         }
         public static void SetInt(string key, int val)
         {
-            if (data.ContainsKey(key))
-            {
-                data[key] = val.ToString();
-            }
-            else
-            {
-                data.Add(key, val.ToString());
-            }
+            data[key] = val.ToString();
             SaveData();
         }
 
@@ -107,14 +94,7 @@ namespace CocoaFramework.Support
         }
         public static void SetLong(string key, long val)
         {
-            if (data.ContainsKey(key))
-            {
-                data[key] = val.ToString();
-            }
-            else
-            {
-                data.Add(key, val.ToString());
-            }
+            data[key] = val.ToString();
             SaveData();
         }
 
@@ -139,14 +119,7 @@ namespace CocoaFramework.Support
         }
         public static void SetFloat(string key, float val)
         {
-            if (data.ContainsKey(key))
-            {
-                data[key] = val.ToString();
-            }
-            else
-            {
-                data.Add(key, val.ToString());
-            }
+            data[key] = val.ToString();
             SaveData();
         }
 
@@ -171,14 +144,7 @@ namespace CocoaFramework.Support
         }
         public static void SetDouble(string key, double val)
         {
-            if (data.ContainsKey(key))
-            {
-                data[key] = val.ToString();
-            }
-            else
-            {
-                data.Add(key, val.ToString());
-            }
+            data[key] = val.ToString();
             SaveData();
         }
 
@@ -203,29 +169,15 @@ namespace CocoaFramework.Support
         }
         public static void SetBool(string key, bool val)
         {
-            if (data.ContainsKey(key))
-            {
-                data[key] = val.ToString();
-            }
-            else
-            {
-                data.Add(key, val.ToString());
-            }
+            data[key] = val.ToString();
             SaveData();
         }
 
         public static bool Remove(string key)
         {
-            if (ContainsKey(key))
-            {
-                data.Remove(key);
-                SaveData();
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            bool succeed = data.TryRemove(key, out _);
+            SaveData();
+            return succeed;
         }
     }
 }
