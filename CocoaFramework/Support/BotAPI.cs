@@ -18,7 +18,7 @@ namespace CocoaFramework.Support
             session = _session;
         }
 
-        public static long BotQQ => session!.QQNumber.GetValueOrDefault();
+        public static long BotQQ => session!.QQNumber ?? 0;
 
         public static Task HandleNewFriendApplyAsync(IApplyResponseArgs args, FriendApplyAction action)
         {
@@ -124,6 +124,11 @@ namespace CocoaFramework.Support
             return session!.SendGroupMessageAsync(groupID, chain, quote);
         }
 
+        public static Task RevokeMessageAsync(int messageID)
+        {
+            return session!.RevokeMessageAsync(messageID);
+        }
+
         public static Task<IFriendInfo[]> GetFriendListAsync()
         {
             return session!.GetFriendListAsync();
@@ -143,14 +148,14 @@ namespace CocoaFramework.Support
         }
 
         public static async Task<ImageMessage> UploadImageAsync(UploadTarget target, string path)
-        {
+        { // Mirai-CSharp 的根据路径上传忘了释放创建的流
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return await session!.UploadPictureAsync(target, fs);
+            return await session!.UploadPictureAsync(target, fs); // 直接返回 Task 会导致流提前释放
         }
         public static async Task<VoiceMessage> UploadVoiceAsync(UploadTarget target, string path)
-        {
+        { // Mirai-CSharp 的根据路径上传忘了释放创建的流
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return await session!.UploadVoiceAsync(target, fs);
+            return await session!.UploadVoiceAsync(target, fs); // 直接返回 Task 会导致流提前释放
         }
 
         public static Task KickGroupMemberAsync(long groupID, long qqID)

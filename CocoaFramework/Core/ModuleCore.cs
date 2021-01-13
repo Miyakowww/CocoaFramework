@@ -26,7 +26,7 @@ namespace CocoaFramework.Core
             Type[] types = assembly.GetTypes();
             foreach (var t in types)
             {
-                if (t.BaseType != typeof(BotModuleBase))
+                if (t.BaseType != typeof(BotModuleBase)) // 提前判断，避免不必要的实例化
                 {
                     continue;
                 }
@@ -34,8 +34,7 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                BotModuleAttribute? m = t.GetCustomAttribute<BotModuleAttribute>();
-                if (m is null)
+                if (t.GetCustomAttribute<BotModuleAttribute>() is not BotModuleAttribute m || m is null)
                 {
                     continue;
                 }
@@ -43,6 +42,7 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
+
                 module.Name = m.Name;
                 module.Level = m.Level;
                 module.PrivateAvailable = m.PrivateAvailable;
@@ -51,6 +51,7 @@ namespace CocoaFramework.Core
                 module.ProcessLevel = m.ProcessLevel;
                 module.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
                 module.ActivityOverrode = t.GetMethod("GroupActivity", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
+
                 module.InitData();
                 module.Init();
                 modules.Add(module);
@@ -63,33 +64,36 @@ namespace CocoaFramework.Core
                     {
                         continue;
                     }
-                    RegexRouteAttribute[] rs = method.GetCustomAttributes<RegexRouteAttribute>().ToArray();
-                    if (rs is not null && rs.Length > 0)
+                    if (method.GetCustomAttributes<RegexRouteAttribute>().ToArray() is not RegexRouteAttribute[] rs || rs.Length <= 0)
                     {
-                        Regex[] regexs = new Regex[rs.Length];
-                        for (int i = 0; i < rs.Length; i++)
-                        {
-                            regexs[i] = rs[i].regex;
-                        }
-                        routes[module].Add(new RegexRouteInfo(module, method, regexs, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
+                        continue;
                     }
+                    Regex[] regexs = new Regex[rs.Length];
+                    for (int i = 0; i < rs.Length; i++)
+                    {
+                        regexs[i] = rs[i].regex;
+                    }
+                    routes[module].Add(new RegexRouteInfo(module, method, regexs, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
                 }
             }
             modules.Sort((a, b) => a.ProcessLevel.CompareTo(b.ProcessLevel));
-            Modules = ImmutableArray.Create(modules.ToArray());
+            Modules = modules.ToImmutableArray();
         }
 
         /// <summary>
-        /// -2: lock true
-        /// -1: false
+        /// -2: lock true <br/>
+        /// -1: false <br/>
         /// 0+: moduleID
         /// </summary>
         internal static int OnMessage(MessageSource src, QMessage msg)
         {
             // Lock Run
+            // 后加入的先被处理，添加同一个监听对象可以简单地实现“子消息锁”，
+            // 也可以在移除并继续时不必考虑循环变量问题
             for (int i = messageLocks.Count - 1; i >= 0; i--)
             {
                 LockState state = messageLocks[i](src, msg);
+                // 高位表示是否移除，低位表示是否被处理
                 if (state.Check(0b10))
                 {
                     messageLocks.RemoveAt(i);
@@ -101,6 +105,7 @@ namespace CocoaFramework.Core
             }
 
             // Module Run
+            // 需要返回 ID，所以不能用 foreach
             for (int i = 0; i < Modules.Length; i++)
             {
                 BotModuleBase m = Modules[i];
@@ -108,15 +113,14 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
+
+                // 权限足够
                 bool auth = src.AuthLevel >= m.Level && m.UserActivity(src.user.ID);
-                if (auth && src.IsGroup && !(m.GroupAvailable && m.GroupActivity(src.group!.ID)))
-                {
-                    auth = false;
-                }
-                if (auth && !src.IsGroup && !m.PrivateAvailable)
-                {
-                    auth = false;
-                }
+                // 群消息时要求群聊可用
+                auth &= !src.IsGroup || (m.GroupAvailable && m.GroupActivity(src.group!.ID));
+                // 私聊消息时要求私聊可用
+                auth &= src.IsGroup || m.PrivateAvailable;
+
                 if (auth)
                 {
                     try
@@ -129,8 +133,7 @@ namespace CocoaFramework.Core
                                 return i;
                             }
                         }
-                        bool stat = m.OnMessageSafe(src, msg);
-                        if (stat)
+                        if (m.OnMessageSafe(src, msg))
                         {
                             m.AddUsage();
                             return i;
@@ -191,6 +194,8 @@ namespace CocoaFramework.Core
                     Task.Run(async () =>
                     {
                         await Task.Delay(this.timeout);
+                        // 与超时判断产生时间差，避免产生边界问题
+                        await Task.Delay(100);
                         if (counter == count && !running)
                         {
                             messageLocks.Remove(Run);
@@ -202,45 +207,45 @@ namespace CocoaFramework.Core
 
             public LockState Run(MessageSource src, QMessage msg)
             {
+                // 超时后直接跳过，之后 Lock 由超时方法移除
                 if (timeout > TimeSpan.Zero && DateTime.Now - lastRun > timeout)
                 {
                     return LockState.Continue;
                 }
                 running = true;
-                if (predicate(src))
-                {
-                    LockState state = run(src, msg);
-                    if (state.Check(0b10))
-                    {
-                        counter++;
-                    }
-                    else if (state.Check(0b01))
-                    {
-                        lastRun = DateTime.Now;
-                        counter++;
-                        if (timeout > TimeSpan.Zero)
-                        {
-                            int count = counter;
-                            new Task(async () =>
-                            {
-                                await Task.Delay(timeout);
-                                await Task.Delay(100);
-                                if (counter == count && !running)
-                                {
-                                    messageLocks.Remove(Run);
-                                    onTimeout?.Invoke();
-                                }
-                            }).Start();
-                        }
-                    }
-                    running = false;
-                    return state;
-                }
-                else
+                if (!predicate(src))
                 {
                     running = false;
                     return LockState.Continue;
                 }
+
+                LockState state = run(src, msg);
+                if (state.Check(0b10))
+                {
+                    counter++;
+                }
+                else if (state.Check(0b01))
+                {
+                    lastRun = DateTime.Now;
+                    counter++;
+                    if (timeout > TimeSpan.Zero)
+                    {
+                        int count = counter;
+                        new Task(async () =>
+                        {
+                            await Task.Delay(timeout);
+                            // 与超时判断产生时间差，避免产生边界问题
+                            await Task.Delay(100);
+                            if (counter == count && !running)
+                            {
+                                messageLocks.Remove(Run);
+                                onTimeout?.Invoke();
+                            }
+                        }).Start();
+                    }
+                }
+                running = false;
+                return state;
             }
         }
 
@@ -274,6 +279,7 @@ namespace CocoaFramework.Core
                 this.route = route;
                 this.regexs = regexs;
                 this.isThreadSafe = isThreadSafe;
+
                 ParameterInfo[] parameters = route.GetParameters();
                 argCount = parameters.Length;
                 argsIndex = new List<(int gnum, int argIndex)>[regexs.Length];
@@ -283,6 +289,7 @@ namespace CocoaFramework.Core
                 isEnumerable = route.ReturnType == typeof(IEnumerable);
                 isVoid = route.ReturnType == typeof(void);
                 isValueType = route.ReturnType.IsValueType && !isVoid;
+
                 for (int i = 0; i < argCount; i++)
                 {
                     if (parameters[i].ParameterType == typeof(MessageSource) && srcIndex == -1)
@@ -294,16 +301,17 @@ namespace CocoaFramework.Core
                         msgIndex = i;
                     }
                 }
-                for (int i = 0; i < regexs.Length; i++)
+
+                for (int reId = 0; reId < regexs.Length; reId++)
                 {
-                    argsIndex[i] = new List<(int gnum, int argIndex)>();
-                    foreach (var gname in regexs[i].GetGroupNames())
+                    argsIndex[reId] = new();
+                    foreach (var gname in regexs[reId].GetGroupNames())
                     {
-                        for (int j = 0; j < argCount; j++)
+                        for (int paraId = 0; paraId < argCount; paraId++)
                         {
-                            if (parameters[j].Name == gname && parameters[j].ParameterType == typeof(string))
+                            if (parameters[paraId].Name == gname && parameters[paraId].ParameterType == typeof(string))
                             {
-                                argsIndex[i].Add((regexs[i].GroupNumberFromName(gname), j));
+                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(gname), paraId));
                                 break;
                             }
                         }
@@ -473,45 +481,33 @@ namespace CocoaFramework.Core
         }
         public bool SetGroupActivity(long groupID, bool activity)
         {
-            if (activity)
+            if (activity && !ModuleData!.ActiveGroup.Contains(groupID))
             {
-                if (!ModuleData!.ActiveGroup.Contains(groupID))
-                {
-                    ModuleData.ActiveGroup.Add(groupID);
-                    SaveData();
-                    return true;
-                }
+                ModuleData.ActiveGroup.Add(groupID);
+                SaveData();
+                return true;
             }
-            else
+            else if (!activity && ModuleData!.ActiveGroup.Contains(groupID))
             {
-                if (ModuleData!.ActiveGroup.Contains(groupID))
-                {
-                    ModuleData.ActiveGroup.Remove(groupID);
-                    SaveData();
-                    return true;
-                }
+                ModuleData.ActiveGroup.Remove(groupID);
+                SaveData();
+                return true;
             }
             return false;
         }
         public bool SetUserBan(long qqID, bool banned)
         {
-            if (banned)
+            if (banned && !ModuleData!.BanUser.Contains(qqID))
             {
-                if (!ModuleData!.BanUser.Contains(qqID))
-                {
-                    ModuleData.BanUser.Add(qqID);
-                    SaveData();
-                    return true;
-                }
+                ModuleData.BanUser.Add(qqID);
+                SaveData();
+                return true;
             }
-            else
+            else if (!banned && ModuleData!.BanUser.Contains(qqID))
             {
-                if (ModuleData!.BanUser.Contains(qqID))
-                {
-                    ModuleData.BanUser.Remove(qqID);
-                    SaveData();
-                    return true;
-                }
+                ModuleData.BanUser.Remove(qqID);
+                SaveData();
+                return true;
             }
             return false;
         }

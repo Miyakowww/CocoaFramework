@@ -142,7 +142,6 @@ namespace CocoaFramework.Core.ProcessingModel
                     Task.Run(async () =>
                     {
                         await Task.Delay(timeout);
-                        await Task.Delay(100);
                         if (counter == count && !running)
                         {
                             root.Run(null, null);

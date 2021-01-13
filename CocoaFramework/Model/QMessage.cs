@@ -1,9 +1,11 @@
-﻿using Mirai_CSharp.Models;
+﻿using CocoaFramework.Support;
+using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CocoaFramework.Model
 {
@@ -42,6 +44,9 @@ namespace CocoaFramework.Model
             .Where(m => m is T)
             .Select(m => (T)m)
             .ToArray();
+
+        public Task RevokeMessageAsync() => BotAPI.RevokeMessageAsync(ID);
+        public void RevokeMessage() => BotAPI.RevokeMessageAsync(ID);
 
         public override string ToString()
             => PlainText;

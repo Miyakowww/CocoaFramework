@@ -20,7 +20,7 @@ namespace CocoaFramework.Core
             Type[] types = assembly.GetTypes();
             foreach (var t in types)
             {
-                if (t.BaseType != typeof(BotComponentBase))
+                if (t.BaseType != typeof(BotComponentBase)) // 提前判断，避免不必要的实例化
                 {
                     continue;
                 }
@@ -32,16 +32,15 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                BotComponentBase? component = Activator.CreateInstance(t) as BotComponentBase;
-                if (component is not null)
+                if (Activator.CreateInstance(t) is not BotComponentBase component)
                 {
-                    component.InitData();
-                    component.Init();
-                    components.Add(component);
+                    continue;
                 }
-
+                component.InitData();
+                component.Init();
+                components.Add(component);
             }
-            Components = ImmutableArray.Create(components.ToArray());
+            Components = components.ToImmutableArray();
         }
     }
 

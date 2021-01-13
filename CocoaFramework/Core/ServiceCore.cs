@@ -21,7 +21,7 @@ namespace CocoaFramework.Core
             Type[] types = assembly.GetTypes();
             foreach (var t in types)
             {
-                if (t.BaseType != typeof(BotServiceBase))
+                if (t.BaseType != typeof(BotServiceBase)) // 提前判断，避免不必要的实例化
                 {
                     continue;
                 }
@@ -33,16 +33,16 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                BotServiceBase? service = Activator.CreateInstance(t) as BotServiceBase;
-                if (service is not null)
+                if (Activator.CreateInstance(t) is not BotServiceBase service)
                 {
-                    service.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
-                    service.InitData();
-                    service.Init();
-                    services.Add(service);
+                    continue;
                 }
+                service.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
+                service.InitData();
+                service.Init();
+                services.Add(service);
             }
-            Services = ImmutableArray.Create(services.ToArray());
+            Services = services.ToImmutableArray();
         }
 
         internal static void OnMessage(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)

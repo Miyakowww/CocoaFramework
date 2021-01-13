@@ -52,13 +52,13 @@ namespace CocoaFramework.Support
         }
 
         public static bool HasGroup(long groupID)
-            => (groupMembers?.ContainsKey(groupID)).GetValueOrDefault(false);
+            => groupMembers?.ContainsKey(groupID) ?? false;
 
         public static bool HasGroupMember(long groupID, long memberID)
-            => (groupMembers?.ContainsKey(groupID)).GetValueOrDefault(false) && groupMembers![groupID].Contains(memberID);
+            => (groupMembers?.ContainsKey(groupID) ?? false) && groupMembers![groupID].Contains(memberID);
 
         public static bool HasFriend(long qqID)
-            => (friends?.Contains(qqID)).GetValueOrDefault(false);
+            => friends?.Contains(qqID) ?? false;
 
         public static long[] GetTempPath(long qqID)
             => groupMembers?
