@@ -176,5 +176,21 @@ namespace CocoaFramework.Core.ProcessingModel
                 ModuleCore.AddLock(m.Run);
             }
         }
+        public static void Start(ListeningTarget target, IEnumerable proc)
+        {
+            Start(target, proc.GetEnumerator());
+        }
+        public static void Start(ListeningTarget target, IEnumerator proc)
+        {
+            if (target is null)
+            {
+                return;
+            }
+            Meeting m = new Meeting(target, proc);
+            if (m.InternalRun(null, null) != LockState.Finished)
+            {
+                ModuleCore.AddLock(m.Run);
+            }
+        }
     }
 }
