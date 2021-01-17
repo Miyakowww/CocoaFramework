@@ -48,40 +48,26 @@ namespace CocoaFramework.Model
             user.ID.GetHashCode();
 
         public int Send(string message)
-            => SendAsync(new PlainMessage(message)).Result;
+            => SendAsync(message).Result;
+
         public int Send(params IMessageBase[] chain)
             => SendAsync(chain).Result;
 
         public Task<int> SendAsync(string message)
-        {
-            if (IsGroup)
-            {
-                return BotAPI.SendGroupMessageAsync(group!.ID, new PlainMessage(message));
-            }
-            else if (IsTemp)
-            {
-                return BotAPI.SendTempMessageAsync(user.ID, group!.ID, new PlainMessage(message));
-            }
-            else
-            {
-                return BotAPI.SendFriendMessageAsync(user.ID, new PlainMessage(message));
-            }
-        }
+            => SendAsync(new PlainMessage(message));
+
         public Task<int> SendAsync(params IMessageBase[] chain)
         {
             if (IsGroup)
             {
                 return BotAPI.SendGroupMessageAsync(group!.ID, chain);
             }
-            else if (IsTemp)
-            {
-                return BotAPI.SendTempMessageAsync(user.ID, group!.ID, chain);
-            }
             else
             {
-                return BotAPI.SendFriendMessageAsync(user.ID, chain);
+                return BotAPI.SendPrivateMessageAsync(user.ID, chain);
             }
         }
+
 
         public int SendEx(bool addAtWhenGroup, string groupDelimiter, string message)
             => SendExAsync(addAtWhenGroup, groupDelimiter, new PlainMessage(message)).Result;
@@ -105,13 +91,9 @@ namespace CocoaFramework.Model
                 newChain.AddRange(chain);
                 return BotAPI.SendGroupMessageAsync(group!.ID, newChain.ToArray());
             }
-            else if (IsTemp)
-            {
-                return BotAPI.SendTempMessageAsync(user.ID, group!.ID, chain);
-            }
             else
             {
-                return BotAPI.SendFriendMessageAsync(user.ID, chain);
+                return BotAPI.SendPrivateMessageAsync(user.ID, chain);
             }
         }
 
@@ -138,13 +120,9 @@ namespace CocoaFramework.Model
                 newChain.AddRange(chain);
                 return BotAPI.SendGroupMessageAsync(quote.ID, group!.ID, newChain.ToArray());
             }
-            else if (IsTemp)
-            {
-                return BotAPI.SendTempMessageAsync(quote.ID, user.ID, group!.ID, chain);
-            }
             else
             {
-                return BotAPI.SendFriendMessageAsync(quote.ID, user.ID, chain);
+                return BotAPI.SendPrivateMessageAsync(quote.ID, user.ID, chain);
             }
         }
 
@@ -159,23 +137,8 @@ namespace CocoaFramework.Model
             => SendPrivateAsync(new PlainMessage(message));
 
         public Task<int> SendPrivateAsync(params IMessageBase[] chain)
-        {
-            if (IsTemp || !user.IsFriend)
-            {
-                try
-                {
-                    return BotAPI.SendTempMessageAsync(user.ID, group!.ID, chain);
-                }
-                catch
-                {
-                    return BotAPI.SendPrivateMessageAsync(user.ID, chain);
-                }
-            }
-            else
-            {
-                return BotAPI.SendFriendMessageAsync(user.ID, chain);
-            }
-        }
+            => BotAPI.SendPrivateMessageAsync(user.ID, chain);
+
 
         public int SendImage(string path)
             => SendImageAsync(path).Result;
@@ -188,6 +151,7 @@ namespace CocoaFramework.Model
 
         public async Task<int> SendVoiceAsync(string path)
             => await SendAsync(await BotAPI.UploadVoiceAsync(IsGroup ? UploadTarget.Group : (IsFriend ? UploadTarget.Friend : UploadTarget.Temp), path));
+
 
         public void Mute(TimeSpan duration)
             => MuteAsync(duration);

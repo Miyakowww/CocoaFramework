@@ -1,5 +1,6 @@
 ﻿using CocoaFramework.Model;
 using CocoaFramework.Support;
+using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,6 +23,7 @@ namespace CocoaFramework.Core
             foreach (var m in Middlewares)
             {
                 m.onMessageIsThreadSafe = m.GetType().GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
+                m.onSendIsThreadSafe = m.GetType().GetMethod("OnSend")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
                 m.InitData();
                 m.Init();
             }
@@ -39,6 +41,18 @@ namespace CocoaFramework.Core
             }
             return true;
         }
+        internal static bool OnSend(ref long id, ref bool isGroup, ref IMessageBase[] chain, ref int? quote)
+        {
+            foreach (var m in Middlewares)
+            {
+                bool ctn = m.OnSendSafe(ref id, ref isGroup, ref chain, ref quote);
+                if (!ctn)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     public abstract class BotMiddlewareBase
@@ -46,12 +60,16 @@ namespace CocoaFramework.Core
         protected internal virtual void Init() { }
         [ThreadSafe]
         protected internal virtual bool OnMessage(ref MessageSource src, ref QMessage msg) { return true; }
+        [ThreadSafe]
+        protected internal virtual bool OnSend(ref long id, ref bool isGroup, ref IMessageBase[] chain, ref int? quote) { return true; }
 
         private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;
 
         internal bool onMessageIsThreadSafe;
         internal readonly object onMessageLock = new();
+        internal bool onSendIsThreadSafe;
+        internal readonly object onSendLock = new();
 
         internal bool OnMessageSafe(ref MessageSource src, ref QMessage msg)
         {
@@ -64,6 +82,20 @@ namespace CocoaFramework.Core
                 lock (onMessageLock)
                 {
                     return OnMessage(ref src, ref msg);
+                }
+            }
+        }
+        internal bool OnSendSafe(ref long id, ref bool isGroup, ref IMessageBase[] chain, ref int? quote)
+        {
+            if (onSendIsThreadSafe)
+            {
+                return OnSend(ref id, ref isGroup, ref chain, ref quote);
+            }
+            else
+            {
+                lock (onSendLock)
+                {
+                    return OnSend(ref id, ref isGroup, ref chain, ref quote);
                 }
             }
         }
