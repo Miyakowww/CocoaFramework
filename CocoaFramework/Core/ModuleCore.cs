@@ -263,7 +263,7 @@ namespace CocoaFramework.Core
             public int srcIndex;
             public int msgIndex;
             public int argCount;
-            public List<(int gnum, int argIndex)>[] argsIndex;
+            public List<(int gnum, int argIndex, int paraType)>[] argsIndex;
 
             private readonly bool isEnumerator;
             private readonly bool isEnumerable;
@@ -282,7 +282,7 @@ namespace CocoaFramework.Core
 
                 ParameterInfo[] parameters = route.GetParameters();
                 argCount = parameters.Length;
-                argsIndex = new List<(int gnum, int argIndex)>[regexs.Length];
+                argsIndex = new List<(int gnum, int argIndex, int paraType)>[regexs.Length];
                 srcIndex = -1;
                 msgIndex = -1;
                 isEnumerator = route.ReturnType == typeof(IEnumerator);
@@ -305,17 +305,30 @@ namespace CocoaFramework.Core
                 for (int reId = 0; reId < regexs.Length; reId++)
                 {
                     argsIndex[reId] = new();
-                    foreach (var gname in regexs[reId].GetGroupNames())
+                    string[] gnames = regexs[reId].GetGroupNames();
+                    for (int paraId = 0; paraId < argCount; paraId++)
                     {
-                        for (int paraId = 0; paraId < argCount; paraId++)
+                        string paraName = parameters[paraId].Name!;
+                        if (gnames.Contains(paraName))
                         {
-                            if (parameters[paraId].Name == gname && parameters[paraId].ParameterType == typeof(string))
+                            Type paraType = parameters[paraId].ParameterType;
+
+                            // typeof(xxx) 不是常量，不能使用 switch
+                            if (paraType == typeof(string))
                             {
-                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(gname), paraId));
-                                break;
+                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 0));
+                            }
+                            else if (paraType == typeof(string[]))
+                            {
+                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 1));
+                            }
+                            else if (paraType == typeof(List<string>))
+                            {
+                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 2));
                             }
                         }
                     }
+
                 }
             }
             public bool Run(MessageSource src, QMessage msg)
@@ -330,7 +343,7 @@ namespace CocoaFramework.Core
                     {
                         continue;
                     }
-                    object[] args = new object[argCount];
+                    object?[] args = new object?[argCount];
                     if (srcIndex != -1)
                     {
                         args[srcIndex] = src;
@@ -339,9 +352,15 @@ namespace CocoaFramework.Core
                     {
                         args[msgIndex] = msg;
                     }
-                    foreach (var (gnum, argIndex) in argsIndex[i])
+                    foreach (var (gnum, argIndex, paraType) in argsIndex[i])
                     {
-                        args[argIndex] = match.Groups[gnum].Value;
+                        args[argIndex] = paraType switch
+                        {
+                            0 => match.Groups[gnum].Value,
+                            1 => match.Groups[gnum].Captures.ToArray(),
+                            2 => match.Groups[gnum].Captures.ToList(),
+                            _ => null
+                        };
                     }
                     if (isEnumerator)
                     {

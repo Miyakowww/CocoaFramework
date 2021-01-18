@@ -12,18 +12,18 @@ namespace CocoaFramework.Support
 {
     public static class BotAPI
     {
-        private static MiraiHttpSession? session;
+        private static MiraiHttpSession session = null!;
 
         internal static void Init(MiraiHttpSession _session)
         {
             session = _session;
         }
 
-        public static long BotQQ => session!.QQNumber ?? 0;
+        public static long BotQQ => session.QQNumber ?? 0;
 
         public static Task HandleNewFriendApplyAsync(IApplyResponseArgs args, FriendApplyAction action)
         {
-            return session!.HandleNewFriendApplyAsync(args, action);
+            return session.HandleNewFriendApplyAsync(args, action);
         }
 
         internal static async Task<int> CommonSendMessage(long id, bool isGroup, IMessageBase[] chain, int? quote)
@@ -35,13 +35,13 @@ namespace CocoaFramework.Support
 
             if (isGroup)
             {
-                return await session!.SendGroupMessageAsync(id, chain, quote);
+                return await session.SendGroupMessageAsync(id, chain, quote);
             }
             else
             {
                 if (BotInfo.HasFriend(id))
                 {
-                    return await session!.SendFriendMessageAsync(id, chain, quote);
+                    return await session.SendFriendMessageAsync(id, chain, quote);
                 }
                 int msgid = 0;
                 long[] tempPath = BotInfo.GetTempPath(id);
@@ -49,7 +49,7 @@ namespace CocoaFramework.Support
                 {
                     try
                     {
-                        msgid = await session!.SendTempMessageAsync(id, t, chain, quote);
+                        msgid = await session.SendTempMessageAsync(id, t, chain, quote);
                         break;
                     }
                     catch { }
@@ -94,62 +94,62 @@ namespace CocoaFramework.Support
 
         public static Task RevokeMessageAsync(int messageID)
         {
-            return session!.RevokeMessageAsync(messageID);
+            return session.RevokeMessageAsync(messageID);
         }
 
         public static Task<IFriendInfo[]> GetFriendListAsync()
         {
-            return session!.GetFriendListAsync();
+            return session.GetFriendListAsync();
         }
 
         public static Task<IGroupMemberInfo[]> GetGroupMemberListAsync(long groupID)
         {
-            return session!.GetGroupMemberListAsync(groupID);
+            return session.GetGroupMemberListAsync(groupID);
         }
         public static Task<IGroupMemberCardInfo> GetGroupMemberCardAsync(long groupID, long qqID)
         {
-            return session!.GetGroupMemberInfoAsync(qqID, groupID);
+            return session.GetGroupMemberInfoAsync(qqID, groupID);
         }
         public static Task<IGroupInfo[]> GetGroupListAsync()
         {
-            return session!.GetGroupListAsync();
+            return session.GetGroupListAsync();
         }
 
         public static async Task<ImageMessage> UploadImageAsync(UploadTarget target, string path)
         { // Mirai-CSharp 的根据路径上传忘了释放创建的流
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return await session!.UploadPictureAsync(target, fs); // 直接返回 Task 会导致流提前释放
+            return await session.UploadPictureAsync(target, fs); // 直接返回 Task 会导致流提前释放
         }
         public static async Task<VoiceMessage> UploadVoiceAsync(UploadTarget target, string path)
         { // Mirai-CSharp 的根据路径上传忘了释放创建的流
             using FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return await session!.UploadVoiceAsync(target, fs); // 直接返回 Task 会导致流提前释放
+            return await session.UploadVoiceAsync(target, fs); // 直接返回 Task 会导致流提前释放
         }
 
         public static Task KickGroupMemberAsync(long groupID, long qqID)
         {
-            return session!.KickMemberAsync(qqID, groupID);
+            return session.KickMemberAsync(qqID, groupID);
         }
         public static Task LeaveGroupAsync(long groupID)
         {
-            return session!.LeaveGroupAsync(groupID);
+            return session.LeaveGroupAsync(groupID);
         }
 
         public static Task MuteGroupMemberAsync(long groupID, long qqID, TimeSpan duration)
         {
-            return session!.MuteAsync(qqID, groupID, duration);
+            return session.MuteAsync(qqID, groupID, duration);
         }
         public static Task UnmuteGroupMemberAsync(long groupID, long qqID)
         {
-            return session!.UnmuteAsync(qqID, groupID);
+            return session.UnmuteAsync(qqID, groupID);
         }
         public static Task MuteGroupAsync(long groupID)
         {
-            return session!.MuteAllAsync(groupID);
+            return session.MuteAllAsync(groupID);
         }
         public static Task UnmuteGroupAsync(long groupID)
         {
-            return session!.UnmuteAllAsync(groupID);
+            return session.UnmuteAllAsync(groupID);
         }
     }
 }
