@@ -57,5 +57,6 @@ Module 的基类
 
 ## 其他特性
 - [RegexRoute](./ModuleFeature/RegexRoute.md)
+- [TextRoute](./ModuleFeature/TextRoute.md)
 - [MessageLock](./ModuleFeature/MessageLock.md)
 - [Meeting](./ModuleFeature/Meeting.md)

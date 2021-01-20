@@ -1,4 +1,5 @@
 ﻿using CocoaFramework.Core.ProcessingModel;
+using CocoaFramework.Core.Route;
 using CocoaFramework.Model;
 using CocoaFramework.Support;
 using System;
@@ -17,7 +18,7 @@ namespace CocoaFramework.Core
     public static class ModuleCore
     {
         public static ImmutableArray<BotModuleBase> Modules { get; private set; }
-        private static readonly Dictionary<BotModuleBase, List<RegexRouteInfo>> routes = new();
+        private static readonly Dictionary<BotModuleBase, List<IRouteInfo>> routes = new();
         private static readonly List<Func<MessageSource, QMessage, LockState>> messageLocks = new();
 
         internal static void Init(Assembly assembly)
@@ -56,7 +57,8 @@ namespace CocoaFramework.Core
                 module.Init();
                 modules.Add(module);
 
-                routes.Add(module, new List<RegexRouteInfo>());
+                List<IRouteInfo> _routes = new();
+                routes.Add(module, _routes);
                 MethodInfo[] methods = module.GetType().GetMethods();
                 foreach (var method in methods)
                 {
@@ -64,16 +66,17 @@ namespace CocoaFramework.Core
                     {
                         continue;
                     }
-                    if (method.GetCustomAttributes<RegexRouteAttribute>().ToArray() is not RegexRouteAttribute[] rs || rs.Length <= 0)
+                    if (method.GetCustomAttributes<RegexRouteAttribute>().ToArray() is RegexRouteAttribute[] rs && rs.Length > 0)
                     {
-                        continue;
+                        Regex[] regexs = rs.Select(r => r.Regex).ToArray();
+                        _routes.Add(new RegexRouteInfo(module, method, regexs, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
                     }
-                    Regex[] regexs = new Regex[rs.Length];
-                    for (int i = 0; i < rs.Length; i++)
+                    if (method.GetCustomAttributes<TextRouteAttribute>().ToArray() is TextRouteAttribute[] ts && ts.Length > 0)
                     {
-                        regexs[i] = rs[i].regex;
+                        string[] texts = ts.Select(t => t.Text).ToArray();
+                        bool[] ignoreCases = ts.Select(t => t.IgnoreCase).ToArray();
+                        _routes.Add(new TextRouteInfo(module, method, texts, ignoreCases, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
                     }
-                    routes[module].Add(new RegexRouteInfo(module, method, regexs, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
                 }
             }
             modules.Sort((a, b) => a.ProcessLevel.CompareTo(b.ProcessLevel));
@@ -252,167 +255,6 @@ namespace CocoaFramework.Core
         private static bool Check(this LockState state, int flag)
         {
             return ((int)state & flag) != 0;
-        }
-
-        private class RegexRouteInfo
-        {
-            public BotModuleBase module;
-            public MethodInfo route;
-            public Regex[] regexs;
-
-            public int srcIndex;
-            public int msgIndex;
-            public int argCount;
-            public List<(int gnum, int argIndex, int paraType)>[] argsIndex;
-
-            private readonly bool isEnumerator;
-            private readonly bool isEnumerable;
-            private readonly bool isValueType;
-            private readonly bool isVoid;
-            private readonly bool isThreadSafe;
-
-            private readonly object _lock = new();
-
-            public RegexRouteInfo(BotModuleBase module, MethodInfo route, Regex[] regexs, bool isThreadSafe)
-            {
-                this.module = module;
-                this.route = route;
-                this.regexs = regexs;
-                this.isThreadSafe = isThreadSafe;
-
-                ParameterInfo[] parameters = route.GetParameters();
-                argCount = parameters.Length;
-                argsIndex = new List<(int gnum, int argIndex, int paraType)>[regexs.Length];
-                srcIndex = -1;
-                msgIndex = -1;
-                isEnumerator = route.ReturnType == typeof(IEnumerator);
-                isEnumerable = route.ReturnType == typeof(IEnumerable);
-                isVoid = route.ReturnType == typeof(void);
-                isValueType = route.ReturnType.IsValueType && !isVoid;
-
-                for (int i = 0; i < argCount; i++)
-                {
-                    if (parameters[i].ParameterType == typeof(MessageSource) && srcIndex == -1)
-                    {
-                        srcIndex = i;
-                    }
-                    if (parameters[i].ParameterType == typeof(QMessage) && msgIndex == -1)
-                    {
-                        msgIndex = i;
-                    }
-                }
-
-                for (int reId = 0; reId < regexs.Length; reId++)
-                {
-                    argsIndex[reId] = new();
-                    string[] gnames = regexs[reId].GetGroupNames();
-                    for (int paraId = 0; paraId < argCount; paraId++)
-                    {
-                        string paraName = parameters[paraId].Name!;
-                        if (gnames.Contains(paraName))
-                        {
-                            Type paraType = parameters[paraId].ParameterType;
-
-                            // typeof(xxx) 不是常量，不能使用 switch
-                            if (paraType == typeof(string))
-                            {
-                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 0));
-                            }
-                            else if (paraType == typeof(string[]))
-                            {
-                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 1));
-                            }
-                            else if (paraType == typeof(List<string>))
-                            {
-                                argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 2));
-                            }
-                        }
-                    }
-
-                }
-            }
-            public bool Run(MessageSource src, QMessage msg)
-            {
-                if (string.IsNullOrEmpty(msg.PlainText))
-                    return false;
-
-                for (int i = 0; i < regexs.Length; i++)
-                {
-                    Match match = regexs[i].Match(msg.PlainText);
-                    if (!match.Success)
-                    {
-                        continue;
-                    }
-                    object?[] args = new object?[argCount];
-                    if (srcIndex != -1)
-                    {
-                        args[srcIndex] = src;
-                    }
-                    if (msgIndex != -1)
-                    {
-                        args[msgIndex] = msg;
-                    }
-                    foreach (var (gnum, argIndex, paraType) in argsIndex[i])
-                    {
-                        args[argIndex] = paraType switch
-                        {
-                            0 => match.Groups[gnum].Value,
-                            1 => match.Groups[gnum].Captures.ToArray(),
-                            2 => match.Groups[gnum].Captures.ToList(),
-                            _ => null
-                        };
-                    }
-                    if (isEnumerator)
-                    {
-                        Meeting.Start(src, (route.Invoke(module, args) as IEnumerator)!);
-                        return true;
-                    }
-                    if (isEnumerable)
-                    {
-                        Meeting.Start(src, (route.Invoke(module, args) as IEnumerable)!);
-                        return true;
-                    }
-                    else
-                    {
-                        if (isThreadSafe)
-                        {
-                            if (isValueType)
-                            {
-                                return !route.Invoke(module, args)!.Equals(Activator.CreateInstance(route.ReturnType));
-                            }
-                            else if (isVoid)
-                            {
-                                route.Invoke(module, args);
-                                return true;
-                            }
-                            else
-                            {
-                                return route.Invoke(module, args) is not null;
-                            }
-                        }
-                        else
-                        {
-                            lock (_lock)
-                            {
-                                if (isValueType)
-                                {
-                                    return !route.Invoke(module, args)!.Equals(Activator.CreateInstance(route.ReturnType));
-                                }
-                                else if (isVoid)
-                                {
-                                    route.Invoke(module, args);
-                                    return true;
-                                }
-                                else
-                                {
-                                    return route.Invoke(module, args) is not null;
-                                }
-                            }
-                        }
-                    }
-                }
-                return false;
-            }
         }
     }
 

@@ -34,14 +34,24 @@ namespace CocoaFramework.Core
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public sealed class RegexRouteAttribute : Attribute
     {
-        public Regex regex;
+        public Regex Regex { get; }
         public RegexRouteAttribute(string pattern)
         {
-            regex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Regex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
         public RegexRouteAttribute(string pattern, RegexOptions options)
         {
-            regex = new Regex(pattern, options | RegexOptions.Compiled);
+            Regex = new Regex(pattern, options | RegexOptions.Compiled);
+        }
+    }
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public sealed class TextRouteAttribute : Attribute
+    {
+        public string Text { get; }
+        public bool IgnoreCase { get; set; } = true;
+        public TextRouteAttribute(string text)
+        {
+            Text = text;
         }
     }
 
