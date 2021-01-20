@@ -74,7 +74,7 @@ namespace BotDemo
     [BotModule("Hello", 0, true, false)]
     public class Hello : BotModuleBase
     {
-        [RegexRoute("^hello$")]
+        [TextRoute("hello")]
         public void Hi(MessageSource src)
         {
             src.Send("Hi!");
