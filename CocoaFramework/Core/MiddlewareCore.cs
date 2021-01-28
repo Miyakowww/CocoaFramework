@@ -22,8 +22,8 @@ namespace CocoaFramework.Core
 
             foreach (var m in Middlewares)
             {
-                m.onMessageIsThreadSafe = m.GetType().GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
-                m.onSendIsThreadSafe = m.GetType().GetMethod("OnSend")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
+                m.onMessageIsThreadSafe = m.GetType().GetMethod(nameof(BotMiddlewareBase.OnMessage))?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
+                m.onSendIsThreadSafe = m.GetType().GetMethod(nameof(BotMiddlewareBase.OnSend))?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
                 m.InitData();
                 m.Init();
             }
@@ -31,12 +31,19 @@ namespace CocoaFramework.Core
 
         internal static bool OnMessage(ref MessageSource src, ref QMessage msg)
         {
-            foreach (var m in Middlewares)
+            foreach (var middleware in Middlewares)
             {
-                bool ctn = m.OnMessageSafe(ref src, ref msg);
-                if (!ctn)
+                try
                 {
-                    return false;
+                    bool ctn = middleware.OnMessageSafe(ref src, ref msg);
+                    if (!ctn)
+                    {
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Middleware Run Error: {middleware.GetType()}", e);
                 }
             }
             return true;

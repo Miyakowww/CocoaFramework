@@ -37,7 +37,7 @@ namespace CocoaFramework.Core
                 {
                     continue;
                 }
-                service.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
+                service.onMessageIsThreadSafe = t.GetMethod(nameof(BotServiceBase.OnMessage))?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
                 service.InitData();
                 service.Init();
                 services.Add(service);
@@ -47,9 +47,16 @@ namespace CocoaFramework.Core
 
         internal static void OnMessage(MessageSource src, QMessage msg, QMessage origMsg, bool processed, BotModuleBase? processModule)
         {
-            foreach (var s in Services)
+            foreach (var service in Services)
             {
-                s.OnMessageSafe(src, msg, origMsg, processed, processModule);
+                try
+                {
+                    service.OnMessageSafe(src, msg, origMsg, processed, processModule);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Service Run Error: {service.GetType()}", e);
+                }
             }
         }
     }

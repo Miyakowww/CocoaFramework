@@ -25,33 +25,33 @@ namespace CocoaFramework.Core
         {
             List<BotModuleBase> modules = new();
             Type[] types = assembly.GetTypes();
-            foreach (var t in types)
+            foreach (var type in types)
             {
-                if (t.BaseType != typeof(BotModuleBase)) // 提前判断，避免不必要的实例化
+                if (type.BaseType != typeof(BotModuleBase)) // 提前判断，避免不必要的实例化
                 {
                     continue;
                 }
-                if (t.GetCustomAttribute<DisabledAttribute>() is not null)
+                if (type.GetCustomAttribute<DisabledAttribute>() is not null)
                 {
                     continue;
                 }
-                if (t.GetCustomAttribute<BotModuleAttribute>() is not BotModuleAttribute m || m is null)
+                if (type.GetCustomAttribute<BotModuleAttribute>() is not BotModuleAttribute moduleInfo || moduleInfo is null)
                 {
                     continue;
                 }
-                if (Activator.CreateInstance(t) is not BotModuleBase module)
+                if (Activator.CreateInstance(type) is not BotModuleBase module)
                 {
                     continue;
                 }
 
-                module.Name = m.Name;
-                module.Level = m.Level;
-                module.PrivateAvailable = m.PrivateAvailable;
-                module.GroupAvailable = m.GroupAvailable;
-                module.ShowOnModuleList = m.ShowOnModuleList;
-                module.ProcessLevel = m.ProcessLevel;
-                module.onMessageIsThreadSafe = t.GetMethod("OnMessage")?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
-                module.ActivityOverrode = t.GetMethod("GroupActivity", new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
+                module.Name = moduleInfo.Name;
+                module.Level = moduleInfo.Level;
+                module.PrivateAvailable = moduleInfo.PrivateAvailable;
+                module.GroupAvailable = moduleInfo.GroupAvailable;
+                module.ShowOnModuleList = moduleInfo.ShowOnModuleList;
+                module.ProcessLevel = moduleInfo.ProcessLevel;
+                module.onMessageIsThreadSafe = type.GetMethod(nameof(BotModuleBase.OnMessage))?.GetCustomAttribute<ThreadSafeAttribute>() is not null;
+                module.ActivityOverrode = type.GetMethod(nameof(BotModuleBase.GroupActivity), new Type[] { typeof(long) })?.DeclaringType != typeof(BotModuleBase);
 
                 module.InitData();
                 module.Init();
@@ -66,15 +66,15 @@ namespace CocoaFramework.Core
                     {
                         continue;
                     }
-                    if (method.GetCustomAttributes<RegexRouteAttribute>().ToArray() is RegexRouteAttribute[] rs && rs.Length > 0)
+                    if (method.GetCustomAttributes<RegexRouteAttribute>().ToArray() is RegexRouteAttribute[] regexRouteInfos && regexRouteInfos.Length > 0)
                     {
-                        Regex[] regexs = rs.Select(r => r.Regex).ToArray();
+                        Regex[] regexs = regexRouteInfos.Select(r => r.Regex).ToArray();
                         _routes.Add(new RegexRouteInfo(module, method, regexs, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
                     }
-                    if (method.GetCustomAttributes<TextRouteAttribute>().ToArray() is TextRouteAttribute[] ts && ts.Length > 0)
+                    if (method.GetCustomAttributes<TextRouteAttribute>().ToArray() is TextRouteAttribute[] textRouteInfos && textRouteInfos.Length > 0)
                     {
-                        string[] texts = ts.Select(t => t.Text).ToArray();
-                        bool[] ignoreCases = ts.Select(t => t.IgnoreCase).ToArray();
+                        string[] texts = textRouteInfos.Select(t => t.Text).ToArray();
+                        bool[] ignoreCases = textRouteInfos.Select(t => t.IgnoreCase).ToArray();
                         _routes.Add(new TextRouteInfo(module, method, texts, ignoreCases, method.GetCustomAttribute<ThreadSafeAttribute>() is not null));
                     }
                 }
@@ -109,42 +109,42 @@ namespace CocoaFramework.Core
 
             // Module Run
             // 需要返回 ID，所以不能用 foreach
-            for (int i = 0; i < Modules.Length; i++)
+            for (int moduleID = 0; moduleID < Modules.Length; moduleID++)
             {
-                BotModuleBase m = Modules[i];
-                if (!m.Enabled)
+                BotModuleBase module = Modules[moduleID];
+                if (!module.Enabled)
                 {
                     continue;
                 }
 
-                // 权限足够
-                bool auth = src.AuthLevel >= m.Level && m.UserActivity(src.user.ID);
+                // 权限判断
+                bool auth = src.AuthLevel >= module.Level && module.UserActivity(src.user.ID);
                 // 群消息时要求群聊可用
-                auth &= !src.IsGroup || (m.GroupAvailable && m.GroupActivity(src.group!.ID));
+                auth &= !src.IsGroup || (module.GroupAvailable && module.GroupActivity(src.group!.ID));
                 // 私聊消息时要求私聊可用
-                auth &= src.IsGroup || m.PrivateAvailable;
+                auth &= src.IsGroup || module.PrivateAvailable;
 
                 if (auth)
                 {
                     try
                     {
-                        foreach (var r in routes[m])
+                        foreach (var route in routes[module])
                         {
-                            if (r.Run(src, msg))
+                            if (route.Run(src, msg))
                             {
-                                m.AddUsage();
-                                return i;
+                                module.AddUsage();
+                                return moduleID;
                             }
                         }
-                        if (m.OnMessageSafe(src, msg))
+                        if (module.OnMessageSafe(src, msg))
                         {
-                            m.AddUsage();
-                            return i;
+                            module.AddUsage();
+                            return moduleID;
                         }
                     }
                     catch (Exception e)
                     {
-                        throw new Exception($"Module Run Error: {m.Name}", e);
+                        throw new Exception($"Module Run Error: {module.Name}", e);
                     }
                 }
             }
@@ -197,7 +197,7 @@ namespace CocoaFramework.Core
                     Task.Run(async () =>
                     {
                         await Task.Delay(this.timeout);
-                        // 与超时判断产生时间差，避免产生边界问题
+                        // 与超时判断产生时间差，避免边界问题
                         await Task.Delay(100);
                         if (counter == count && !running)
                         {
@@ -237,7 +237,7 @@ namespace CocoaFramework.Core
                         new Task(async () =>
                         {
                             await Task.Delay(timeout);
-                            // 与超时判断产生时间差，避免产生边界问题
+                            // 与超时判断产生时间差，避免边界问题
                             await Task.Delay(100);
                             if (counter == count && !running)
                             {

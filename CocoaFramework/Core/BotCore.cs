@@ -70,12 +70,30 @@ namespace CocoaFramework.Core
             }
             catch (Exception e)
             {
-                string einfo = $"\n{DateTime.Now}\nMessage:{(src.IsGroup ? $"[{src.group!.ID}]" : "")}[{src.user.ID}] {msg.PlainText}\n{e.StackTrace}\n{e.Message}";
+                StringBuilder sb = new(DateTime.Now.ToString());
+
+                sb.Append($"\nMessage: ");
+                if (src.IsGroup)
+                {
+                    sb.Append($"[{src.group!.ID}] ");
+                }
+                sb.Append($"[{src.user.ID}] ");
+                sb.Append(msg);
+
+                sb.Append($"\n{e.Message}");
+
+                e = e.InnerException?.InnerException ?? e.InnerException ?? e;
+
+                sb.Append($"\n{e.GetType()}: {e.Message}");
+                sb.Append("\nStack:\n");
+                sb.Append(e.StackTrace);
+
                 if (BotReg.GetBool("CORE/LOG_ERROR", true) && BotAuth.HasOwner)
                 {
-                    _ = BotAPI.SendPrivateMessageAsync(BotAuth.Owner, new PlainMessage(einfo));
+                    _ = BotAPI.SendPrivateMessageAsync(BotAuth.Owner, new PlainMessage(sb.ToString()));
                 }
-                File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "\\log_error.txt", einfo);
+                sb.Append("\n\n");
+                File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "\\log_error.txt", sb.ToString());
             }
         }
         public static void OnFriendRequest(IApplyResponseArgs args)
