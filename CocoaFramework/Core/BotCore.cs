@@ -80,13 +80,7 @@ namespace CocoaFramework.Core
                 sb.Append($"[{src.user.ID}] ");
                 sb.Append(msg);
 
-                sb.Append($"\n{e.Message}");
-
-                e = e.InnerException?.InnerException ?? e.InnerException ?? e;
-
-                sb.Append($"\n{e.GetType()}: {e.Message}");
-                sb.Append("\nStack:\n");
-                sb.Append(e.StackTrace);
+                sb.Append($"\n{e}");
 
                 if (BotReg.GetBool("CORE/LOG_ERROR", true) && BotAuth.HasOwner)
                 {
