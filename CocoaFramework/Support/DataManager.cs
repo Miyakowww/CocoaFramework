@@ -17,7 +17,7 @@ namespace CocoaFramework.Support
 
         internal static bool SavingData => savingCount > 0;
 
-        public static readonly string dataPath = AppDomain.CurrentDomain.BaseDirectory + @"\data\";
+        public static readonly string dataPath = AppDomain.CurrentDomain.BaseDirectory + "/data/";
 
         public static async Task SaveData(string name, object? obj)
         {

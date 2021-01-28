@@ -93,7 +93,7 @@ namespace CocoaFramework.Core
                     _ = BotAPI.SendPrivateMessageAsync(BotAuth.Owner, new PlainMessage(sb.ToString()));
                 }
                 sb.Append("\n\n");
-                File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "\\log_error.txt", sb.ToString());
+                File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "/log_error.txt", sb.ToString());
             }
         }
         public static void OnFriendRequest(IApplyResponseArgs args)

@@ -121,13 +121,13 @@ namespace CocoaFramework.Core
         }
         internal void LoadData()
         {
-            if (!Directory.Exists($@"{DataManager.dataPath}MiddlewareData\{TypeName}"))
+            if (!Directory.Exists($@"{DataManager.dataPath}MiddlewareData/{TypeName}"))
             {
-                Directory.CreateDirectory($@"{DataManager.dataPath}MiddlewareData\{TypeName}");
+                Directory.CreateDirectory($@"{DataManager.dataPath}MiddlewareData/{TypeName}");
             }
             foreach (var f in hostedFields)
             {
-                object? val = DataManager.LoadData($@"MiddlewareData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
+                object? val = DataManager.LoadData($@"MiddlewareData/{TypeName}/Field_{f.Name}", f.FieldType).Result;
                 if (val is not null)
                 {
                     f.SetValue(this, val);
@@ -138,7 +138,7 @@ namespace CocoaFramework.Core
         {
             foreach (var f in hostedFields)
             {
-                _ = DataManager.SaveData($@"MiddlewareData\{TypeName}\Field_{f.Name}", f.GetValue(this));
+                _ = DataManager.SaveData($@"MiddlewareData/{TypeName}/Field_{f.Name}", f.GetValue(this));
             }
         }
     }

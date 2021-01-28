@@ -102,13 +102,13 @@ namespace CocoaFramework.Core
         }
         internal void LoadData()
         {
-            if (!Directory.Exists($@"{DataManager.dataPath}ServiceData\{TypeName}"))
+            if (!Directory.Exists($@"{DataManager.dataPath}ServiceData/{TypeName}"))
             {
-                Directory.CreateDirectory($@"{DataManager.dataPath}ServiceData\{TypeName}");
+                Directory.CreateDirectory($@"{DataManager.dataPath}ServiceData/{TypeName}");
             }
             foreach (var f in hostedFields)
             {
-                object? val = DataManager.LoadData($@"ServiceData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
+                object? val = DataManager.LoadData($@"ServiceData/{TypeName}/Field_{f.Name}", f.FieldType).Result;
                 if (val is not null)
                 {
                     f.SetValue(this, val);
@@ -119,7 +119,7 @@ namespace CocoaFramework.Core
         {
             foreach (var f in hostedFields)
             {
-                _ = DataManager.SaveData($@"ServiceData\{TypeName}\Field_{f.Name}", f.GetValue(this));
+                _ = DataManager.SaveData($@"ServiceData/{TypeName}/Field_{f.Name}", f.GetValue(this));
             }
         }
     }

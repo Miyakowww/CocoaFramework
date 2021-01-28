@@ -312,11 +312,11 @@ namespace CocoaFramework.Core
         }
         internal void LoadData()
         {
-            if (!Directory.Exists($@"{DataManager.dataPath}ModuleData\{TypeName}"))
+            if (!Directory.Exists($@"{DataManager.dataPath}ModuleData/{TypeName}"))
             {
-                Directory.CreateDirectory($@"{DataManager.dataPath}ModuleData\{TypeName}");
+                Directory.CreateDirectory($@"{DataManager.dataPath}ModuleData/{TypeName}");
             }
-            ModuleData = DataManager.LoadData<BotModuleData>($@"ModuleData\{TypeName}\.ModuleData").Result ?? new BotModuleData
+            ModuleData = DataManager.LoadData<BotModuleData>($@"ModuleData/{TypeName}/.ModuleData").Result ?? new BotModuleData
             {
                 ActiveGroup = new List<long>(),
                 BanUser = new List<long>(),
@@ -325,7 +325,7 @@ namespace CocoaFramework.Core
             };
             foreach (var f in hostedFields)
             {
-                object? val = DataManager.LoadData($@"ModuleData\{TypeName}\Field_{f.Name}", f.FieldType).Result;
+                object? val = DataManager.LoadData($@"ModuleData/{TypeName}/Field_{f.Name}", f.FieldType).Result;
                 if (val is not null)
                 {
                     f.SetValue(this, val);
@@ -334,10 +334,10 @@ namespace CocoaFramework.Core
         }
         internal void SaveData()
         {
-            _ = DataManager.SaveData($@"ModuleData\{TypeName}\.ModuleData", ModuleData);
+            _ = DataManager.SaveData($@"ModuleData/{TypeName}/.ModuleData", ModuleData);
             foreach (var f in hostedFields)
             {
-                _ = DataManager.SaveData($@"ModuleData\{TypeName}\Field_{f.Name}", f.GetValue(this));
+                _ = DataManager.SaveData($@"ModuleData/{TypeName}/Field_{f.Name}", f.GetValue(this));
             }
         }
         public bool SetGroupActivity(long groupID, bool activity)
