@@ -104,6 +104,7 @@ namespace CocoaFramework.Core.Route
                 {
                     continue;
                 }
+
                 object?[] args = new object?[argCount];
                 if (srcIndex != -1)
                 {
@@ -123,21 +124,23 @@ namespace CocoaFramework.Core.Route
                         _ => null
                     };
                 }
+
+                object? result;
+                if (isThreadSafe)
+                {
+                    lock (_lock)
+                    {
+                        result = route.Invoke(module, args);
+                    }
+                }
+                else
+                {
+                    result = route.Invoke(module, args);
+                }
+
                 if (isEnumerator)
                 {
-                    IEnumerator? meeting;
-                    if (isThreadSafe)
-                    {
-                        lock (_lock)
-                        {
-                            meeting = route.Invoke(module, args) as IEnumerator;
-                        }
-                    }
-                    else
-                    {
-                        meeting = route.Invoke(module, args) as IEnumerator;
-                    }
-                    if (meeting is null)
+                    if (result is not IEnumerator meeting)
                     {
                         return false;
                     }
@@ -146,19 +149,7 @@ namespace CocoaFramework.Core.Route
                 }
                 if (isEnumerable)
                 {
-                    IEnumerable? meeting;
-                    if (isThreadSafe)
-                    {
-                        lock (_lock)
-                        {
-                            meeting = route.Invoke(module, args) as IEnumerable;
-                        }
-                    }
-                    else
-                    {
-                        meeting = route.Invoke(module, args) as IEnumerable;
-                    }
-                    if (meeting is null)
+                    if (result is not IEnumerable meeting)
                     {
                         return false;
                     }
@@ -167,18 +158,7 @@ namespace CocoaFramework.Core.Route
                 }
                 if (isString)
                 {
-                    string? res;
-                    if (isThreadSafe)
-                    {
-                        lock (_lock)
-                        {
-                            res = route.Invoke(module, args) as string;
-                        }
-                    }
-                    else
-                    {
-                        res = route.Invoke(module, args) as string;
-                    }
+                    string? res = result as string;
                     if (string.IsNullOrEmpty(res))
                     {
                         return false;
@@ -188,62 +168,25 @@ namespace CocoaFramework.Core.Route
                 }
                 if (isStringBuilder)
                 {
-                    StringBuilder? res;
-                    if (isThreadSafe)
-                    {
-                        lock (_lock)
-                        {
-                            res = route.Invoke(module, args) as StringBuilder;
-                        }
-                    }
-                    else
-                    {
-                        res = route.Invoke(module, args) as StringBuilder;
-                    }
-                    if (res is null || res.Length <= 0)
+                    if (result is not StringBuilder res || res.Length <= 0)
                     {
                         return false;
                     }
                     src.Send(res.ToString());
                     return true;
                 }
+
+                if (isValueType)
+                {
+                    return !result?.Equals(Activator.CreateInstance(route.ReturnType)) ?? false;
+                }
+                else if (isVoid)
+                {
+                    return true;
+                }
                 else
                 {
-                    if (isThreadSafe)
-                    {
-                        if (isValueType)
-                        {
-                            return !route.Invoke(module, args)!.Equals(Activator.CreateInstance(route.ReturnType));
-                        }
-                        else if (isVoid)
-                        {
-                            route.Invoke(module, args);
-                            return true;
-                        }
-                        else
-                        {
-                            return route.Invoke(module, args) is not null;
-                        }
-                    }
-                    else
-                    {
-                        lock (_lock)
-                        {
-                            if (isValueType)
-                            {
-                                return !route.Invoke(module, args)!.Equals(Activator.CreateInstance(route.ReturnType));
-                            }
-                            else if (isVoid)
-                            {
-                                route.Invoke(module, args);
-                                return true;
-                            }
-                            else
-                            {
-                                return route.Invoke(module, args) is not null;
-                            }
-                        }
-                    }
+                    return result is not null;
                 }
             }
             return false;
