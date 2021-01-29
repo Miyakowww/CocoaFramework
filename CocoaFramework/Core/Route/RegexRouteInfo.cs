@@ -97,99 +97,96 @@ namespace CocoaFramework.Core.Route
             if (string.IsNullOrEmpty(msg.PlainText))
                 return false;
 
-            for (int i = 0; i < regexs.Length; i++)
+            (Match match, var index) = regexs
+                .Select((r, i) => (match: r.Match(msg.PlainText), index: argsIndex[i]))
+                .FirstOrDefault(t => t.match.Success);
+
+            if (match is null)
+                return false;
+
+            object?[] args = new object?[argCount];
+            if (srcIndex != -1)
             {
-                Match match = regexs[i].Match(msg.PlainText);
-                if (!match.Success)
+                args[srcIndex] = src;
+            }
+            if (msgIndex != -1)
+            {
+                args[msgIndex] = msg;
+            }
+            foreach (var (gnum, argIndex, paraType) in index)
+            {
+                args[argIndex] = paraType switch
                 {
-                    continue;
-                }
+                    0 => match.Groups[gnum].Value,
+                    1 => match.Groups[gnum].Captures.ToArray(),
+                    2 => match.Groups[gnum].Captures.ToList(),
+                    _ => null
+                };
+            }
 
-                object?[] args = new object?[argCount];
-                if (srcIndex != -1)
-                {
-                    args[srcIndex] = src;
-                }
-                if (msgIndex != -1)
-                {
-                    args[msgIndex] = msg;
-                }
-                foreach (var (gnum, argIndex, paraType) in argsIndex[i])
-                {
-                    args[argIndex] = paraType switch
-                    {
-                        0 => match.Groups[gnum].Value,
-                        1 => match.Groups[gnum].Captures.ToArray(),
-                        2 => match.Groups[gnum].Captures.ToList(),
-                        _ => null
-                    };
-                }
-
-                object? result;
-                if (isThreadSafe)
-                {
-                    lock (_lock)
-                    {
-                        result = route.Invoke(module, args);
-                    }
-                }
-                else
+            object? result;
+            if (isThreadSafe)
+            {
+                lock (_lock)
                 {
                     result = route.Invoke(module, args);
                 }
-
-                if (isEnumerator)
-                {
-                    if (result is not IEnumerator meeting)
-                    {
-                        return false;
-                    }
-                    Meeting.Start(src, meeting);
-                    return true;
-                }
-                if (isEnumerable)
-                {
-                    if (result is not IEnumerable meeting)
-                    {
-                        return false;
-                    }
-                    Meeting.Start(src, meeting);
-                    return true;
-                }
-                if (isString)
-                {
-                    string? res = result as string;
-                    if (string.IsNullOrEmpty(res))
-                    {
-                        return false;
-                    }
-                    src.Send(res);
-                    return true;
-                }
-                if (isStringBuilder)
-                {
-                    if (result is not StringBuilder res || res.Length <= 0)
-                    {
-                        return false;
-                    }
-                    src.Send(res.ToString());
-                    return true;
-                }
-
-                if (isValueType)
-                {
-                    return !result?.Equals(Activator.CreateInstance(route.ReturnType)) ?? false;
-                }
-                else if (isVoid)
-                {
-                    return true;
-                }
-                else
-                {
-                    return result is not null;
-                }
             }
-            return false;
+            else
+            {
+                result = route.Invoke(module, args);
+            }
+
+            if (isEnumerator)
+            {
+                if (result is not IEnumerator meeting)
+                {
+                    return false;
+                }
+                Meeting.Start(src, meeting);
+                return true;
+            }
+            if (isEnumerable)
+            {
+                if (result is not IEnumerable meeting)
+                {
+                    return false;
+                }
+                Meeting.Start(src, meeting);
+                return true;
+            }
+            if (isString)
+            {
+                string? res = result as string;
+                if (string.IsNullOrEmpty(res))
+                {
+                    return false;
+                }
+                src.Send(res);
+                return true;
+            }
+            if (isStringBuilder)
+            {
+                if (result is not StringBuilder res || res.Length <= 0)
+                {
+                    return false;
+                }
+                src.Send(res.ToString());
+                return true;
+            }
+
+            if (isValueType)
+            {
+                return !result?.Equals(Activator.CreateInstance(route.ReturnType)) ?? false;
+            }
+            else if (isVoid)
+            {
+                return true;
+            }
+            else
+            {
+                return result is not null;
+            }
         }
     }
 }

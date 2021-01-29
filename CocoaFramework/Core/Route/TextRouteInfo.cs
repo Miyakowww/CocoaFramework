@@ -69,97 +69,87 @@ namespace CocoaFramework.Core.Route
             if (string.IsNullOrEmpty(msg.PlainText))
                 return false;
 
-            for (int i = 0; i < texts.Length; i++)
+            if (!texts.Where((t, i) => ignoreCases[i] ?
+             msg.PlainText.ToLower() == t.ToLower() :
+             msg.PlainText == t)
+                .Any())
             {
-                bool match;
-                if (ignoreCases[i])
-                {
-                    match = msg.PlainText.ToLower() == texts[i].ToLower();
-                }
-                else
-                {
-                    match = msg.PlainText == texts[i];
-                }
-                if (!match)
-                {
-                    continue;
-                }
+                return false;
+            }
 
-                object?[] args = new object?[argCount];
-                if (srcIndex != -1)
-                {
-                    args[srcIndex] = src;
-                }
-                if (msgIndex != -1)
-                {
-                    args[msgIndex] = msg;
-                }
+            object?[] args = new object?[argCount];
+            if (srcIndex != -1)
+            {
+                args[srcIndex] = src;
+            }
+            if (msgIndex != -1)
+            {
+                args[msgIndex] = msg;
+            }
 
-                object? result;
-                if (isThreadSafe)
-                {
-                    lock (_lock)
-                    {
-                        result = route.Invoke(module, args);
-                    }
-                }
-                else
+            object? result;
+            if (isThreadSafe)
+            {
+                lock (_lock)
                 {
                     result = route.Invoke(module, args);
                 }
-
-                if (isEnumerator)
-                {
-                    if (result is not IEnumerator meeting)
-                    {
-                        return false;
-                    }
-                    Meeting.Start(src, meeting);
-                    return true;
-                }
-                if (isEnumerable)
-                {
-                    if (result is not IEnumerable meeting)
-                    {
-                        return false;
-                    }
-                    Meeting.Start(src, meeting);
-                    return true;
-                }
-                if (isString)
-                {
-                    string? res = result as string;
-                    if (string.IsNullOrEmpty(res))
-                    {
-                        return false;
-                    }
-                    src.Send(res);
-                    return true;
-                }
-                if (isStringBuilder)
-                {
-                    if (result is not StringBuilder res || res.Length <= 0)
-                    {
-                        return false;
-                    }
-                    src.Send(res.ToString());
-                    return true;
-                }
-
-                if (isValueType)
-                {
-                    return !result?.Equals(Activator.CreateInstance(route.ReturnType)) ?? false;
-                }
-                else if (isVoid)
-                {
-                    return true;
-                }
-                else
-                {
-                    return result is not null;
-                }
             }
-            return false;
+            else
+            {
+                result = route.Invoke(module, args);
+            }
+
+            if (isEnumerator)
+            {
+                if (result is not IEnumerator meeting)
+                {
+                    return false;
+                }
+                Meeting.Start(src, meeting);
+                return true;
+            }
+            if (isEnumerable)
+            {
+                if (result is not IEnumerable meeting)
+                {
+                    return false;
+                }
+                Meeting.Start(src, meeting);
+                return true;
+            }
+            if (isString)
+            {
+                string? res = result as string;
+                if (string.IsNullOrEmpty(res))
+                {
+                    return false;
+                }
+                src.Send(res);
+                return true;
+            }
+            if (isStringBuilder)
+            {
+                if (result is not StringBuilder res || res.Length <= 0)
+                {
+                    return false;
+                }
+                src.Send(res.ToString());
+                return true;
+            }
+
+            if (isValueType)
+            {
+                return !result?.Equals(Activator.CreateInstance(route.ReturnType)) ?? false;
+            }
+            else if (isVoid)
+            {
+                return true;
+            }
+            else
+            {
+                return result is not null;
+            }
         }
     }
 }
