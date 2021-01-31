@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using CocoaFramework.Core.ProcessingModel;
 using CocoaFramework.Model;
 
 namespace CocoaFramework.Core.Route
@@ -28,10 +27,8 @@ namespace CocoaFramework.Core.Route
         public int argCount;
         public List<(int gnum, int argIndex, int paraType)>[] argsIndex;
 
-        private readonly bool isEnumerator;
-        private readonly bool isEnumerable;
-        private readonly bool isString;
-        private readonly bool isStringBuilder;
+        private readonly RouteResultProcessor? processor;
+
         private readonly bool isValueType;
         private readonly bool isVoid;
         private readonly bool isThreadSafe;
@@ -50,10 +47,24 @@ namespace CocoaFramework.Core.Route
             argsIndex = new List<(int gnum, int argIndex, int paraType)>[regexs.Length];
             srcIndex = -1;
             msgIndex = -1;
-            isEnumerator = route.ReturnType == typeof(IEnumerator);
-            isEnumerable = route.ReturnType == typeof(IEnumerable);
-            isString = route.ReturnType == typeof(string);
-            isStringBuilder = route.ReturnType == typeof(StringBuilder);
+
+            if (route.ReturnType == typeof(IEnumerator))
+            {
+                processor = RouteResultProcessors.Enumerator;
+            }
+            else if (route.ReturnType == typeof(IEnumerable))
+            {
+                processor = RouteResultProcessors.Enumerable;
+            }
+            else if (route.ReturnType == typeof(string))
+            {
+                processor = RouteResultProcessors.String;
+            }
+            else if (route.ReturnType == typeof(StringBuilder))
+            {
+                processor = RouteResultProcessors.StringBuilder;
+            }
+
             isVoid = route.ReturnType == typeof(void);
             isValueType = route.ReturnType.IsValueType && !isVoid;
 
@@ -147,45 +158,11 @@ namespace CocoaFramework.Core.Route
                 result = route.Invoke(module, args);
             }
 
-            if (isEnumerator)
+            if (processor is not null)
             {
-                if (result is not IEnumerator meeting)
-                {
-                    return false;
-                }
-                Meeting.Start(src, meeting);
-                return true;
+                return processor(src, result);
             }
-            if (isEnumerable)
-            {
-                if (result is not IEnumerable meeting)
-                {
-                    return false;
-                }
-                Meeting.Start(src, meeting);
-                return true;
-            }
-            if (isString)
-            {
-                string? res = result as string;
-                if (string.IsNullOrEmpty(res))
-                {
-                    return false;
-                }
-                src.Send(res);
-                return true;
-            }
-            if (isStringBuilder)
-            {
-                if (result is not StringBuilder res || res.Length <= 0)
-                {
-                    return false;
-                }
-                src.Send(res.ToString());
-                return true;
-            }
-
-            if (isValueType)
+            else if (isValueType)
             {
                 return !result?.Equals(Activator.CreateInstance(route.ReturnType)) ?? false;
             }
