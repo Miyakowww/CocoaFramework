@@ -5,20 +5,18 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
-using CocoaFramework.Core.ProcessingModel;
-using CocoaFramework.Core.Route;
-using CocoaFramework.Model;
-using CocoaFramework.Support;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CocoaFramework.Core.ProcessingModel;
+using CocoaFramework.Core.Route;
+using CocoaFramework.Model;
+using CocoaFramework.Support;
 
 namespace CocoaFramework.Core
 {
@@ -259,10 +257,8 @@ namespace CocoaFramework.Core
             }
         }
 
-        private static bool Check(this LockState state, int flag)
-        {
-            return ((int)state & flag) != 0;
-        }
+        private static bool Check(this LockState state, int flag) 
+            => ((int)state & flag) != 0;
     }
 
     public class BotModuleData
@@ -449,7 +445,7 @@ namespace CocoaFramework.Core
 
         protected internal virtual void Init() { }
         [ThreadSafe]
-        protected internal virtual bool OnMessage(MessageSource src, QMessage msg) { return false; }
+        protected internal virtual bool OnMessage(MessageSource src, QMessage msg) => false;
 
         internal bool OnMessageSafe(MessageSource src, QMessage msg)
         {

@@ -5,13 +5,10 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
-using CocoaFramework.Model;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using CocoaFramework.Model;
 
 namespace CocoaFramework.Core.ProcessingModel
 {
@@ -167,10 +164,8 @@ namespace CocoaFramework.Core.ProcessingModel
             }
         }
 
-        public static void Start(MessageSource src, IEnumerable proc)
-        {
-            Start(src, proc.GetEnumerator());
-        }
+        public static void Start(MessageSource src, IEnumerable proc) 
+            => Start(src, proc.GetEnumerator());
         public static void Start(MessageSource src, IEnumerator proc)
         {
             if (src is null)
@@ -183,10 +178,8 @@ namespace CocoaFramework.Core.ProcessingModel
                 ModuleCore.AddLock(m.Run);
             }
         }
-        public static void Start(ListeningTarget target, IEnumerable proc)
-        {
-            Start(target, proc.GetEnumerator());
-        }
+        public static void Start(ListeningTarget target, IEnumerable proc) 
+            => Start(target, proc.GetEnumerator());
         public static void Start(ListeningTarget target, IEnumerator proc)
         {
             if (target is null)

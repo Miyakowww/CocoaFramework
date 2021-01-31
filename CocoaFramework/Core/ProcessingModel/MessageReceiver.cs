@@ -6,11 +6,6 @@
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
 using CocoaFramework.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CocoaFramework.Core.ProcessingModel
 {

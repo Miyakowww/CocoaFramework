@@ -5,12 +5,7 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace CocoaFramework.Support
 {

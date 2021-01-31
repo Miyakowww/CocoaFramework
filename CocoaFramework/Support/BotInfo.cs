@@ -6,12 +6,9 @@
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CocoaFramework.Support
@@ -53,10 +50,8 @@ namespace CocoaFramework.Support
             return false;
         }
 
-        public static async Task ReloadFriends()
-        {
-            friends = (await BotAPI.GetFriendListAsync()).Select(i => i.Id).ToImmutableHashSet();
-        }
+        public static async Task ReloadFriends() 
+            => friends = (await BotAPI.GetFriendListAsync()).Select(i => i.Id).ToImmutableHashSet();
 
         public static bool HasGroup(long groupID)
             => groupMembers?.ContainsKey(groupID) ?? false;

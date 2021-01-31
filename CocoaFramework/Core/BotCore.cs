@@ -5,18 +5,15 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
+using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using CocoaFramework.Docking;
 using CocoaFramework.Model;
 using CocoaFramework.Support;
 using Mirai_CSharp;
 using Mirai_CSharp.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CocoaFramework.Core
 {

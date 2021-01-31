@@ -5,11 +5,8 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace CocoaFramework.Support
 {
@@ -17,15 +14,11 @@ namespace CocoaFramework.Support
     {
         private static ConcurrentDictionary<string, string> data = new();
 
-        internal static void Init()
-        {
-            data = DataManager.LoadData<ConcurrentDictionary<string, string>>("BotReg").Result ?? data;
-        }
+        internal static void Init() 
+            => data = DataManager.LoadData<ConcurrentDictionary<string, string>>("BotReg").Result ?? data;
 
-        private static void SaveData()
-        {
-            _ = DataManager.SaveData("BotReg", data);
-        }
+        private static void SaveData() 
+            => _ = DataManager.SaveData("BotReg", data);
 
         public static bool ContainsKey(string key)
             => data.ContainsKey(key);

@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using CocoaFramework.Core.ProcessingModel;
 using CocoaFramework.Model;
 
@@ -74,7 +73,9 @@ namespace CocoaFramework.Core.Route
         public bool Run(MessageSource src, QMessage msg)
         {
             if (string.IsNullOrEmpty(msg.PlainText))
+            {
                 return false;
+            }
 
             if (!texts.Where((t, i) => ignoreCases[i] ?
              msg.PlainText.ToLower() == t.ToLower() :

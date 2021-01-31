@@ -5,13 +5,10 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
+using System;
+using System.Threading.Tasks;
 using CocoaFramework.Support;
 using Mirai_CSharp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CocoaFramework.Model
 {

@@ -6,11 +6,6 @@
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
 using CocoaFramework.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CocoaFramework.Core.ProcessingModel
 {
@@ -33,10 +28,8 @@ namespace CocoaFramework.Core.ProcessingModel
         }
 
         public static readonly ListeningTarget All = new(null, null);
-        public static ListeningTarget FromGroup(long group)
-        {
-            return new ListeningTarget(new QGroup(group), null);
-        }
+        public static ListeningTarget FromGroup(long group) 
+            => new ListeningTarget(new QGroup(group), null);
         public static ListeningTarget? FromGroup(QGroup group)
         {
             if (group is null)
@@ -45,10 +38,8 @@ namespace CocoaFramework.Core.ProcessingModel
             }
             return new ListeningTarget(group, null);
         }
-        public static ListeningTarget FromUser(long user)
-        {
-            return new ListeningTarget(null, new QUser(user));
-        }
+        public static ListeningTarget FromUser(long user) 
+            => new ListeningTarget(null, new QUser(user));
         public static ListeningTarget? FromUser(QUser user)
         {
             if (user is null)
@@ -57,10 +48,8 @@ namespace CocoaFramework.Core.ProcessingModel
             }
             return new ListeningTarget(null, user);
         }
-        public static ListeningTarget FromTarget(long group, long user)
-        {
-            return new ListeningTarget(new QGroup(group), new QUser(user));
-        }
+        public static ListeningTarget FromTarget(long group, long user) 
+            => new ListeningTarget(new QGroup(group), new QUser(user));
         public static ListeningTarget? FromTarget(MessageSource src)
         {
             if (src is null)

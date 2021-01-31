@@ -5,17 +5,15 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
-using CocoaFramework.Model;
-using CocoaFramework.Support;
-using Mirai_CSharp.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using CocoaFramework.Model;
+using CocoaFramework.Support;
+using Mirai_CSharp.Models;
 
 namespace CocoaFramework.Core
 {
@@ -73,9 +71,9 @@ namespace CocoaFramework.Core
     {
         protected internal virtual void Init() { }
         [ThreadSafe]
-        protected internal virtual bool OnMessage(ref MessageSource src, ref QMessage msg) { return true; }
+        protected internal virtual bool OnMessage(ref MessageSource src, ref QMessage msg) => true;
         [ThreadSafe]
-        protected internal virtual bool OnSend(ref long id, ref bool isGroup, ref IMessageBase[] chain, ref int? quote) { return true; }
+        protected internal virtual bool OnSend(ref long id, ref bool isGroup, ref IMessageBase[] chain, ref int? quote) => true;
 
         private readonly List<FieldInfo> hostedFields = new();
         private string? TypeName;

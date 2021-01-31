@@ -5,14 +5,13 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
-using CocoaFramework.Support;
-using Mirai_CSharp.Models;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CocoaFramework.Support;
+using Mirai_CSharp.Models;
 
 namespace CocoaFramework.Model
 {
@@ -26,7 +25,9 @@ namespace CocoaFramework.Model
         public QMessage(IMessageBase[] _chain)
         {
             if (_chain.Length < 2 || _chain[0] is not SourceMessage src)
+            {
                 throw new ArgumentException("Invalid message chain.");
+            }
 
             ID = src.Id;
             Time = src.Time;

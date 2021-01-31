@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using CocoaFramework.Core.ProcessingModel;
 using CocoaFramework.Model;
 
@@ -102,14 +101,18 @@ namespace CocoaFramework.Core.Route
         public bool Run(MessageSource src, QMessage msg)
         {
             if (string.IsNullOrEmpty(msg.PlainText))
+            {
                 return false;
+            }
 
             (Match match, var index) = regexs
                 .Select((r, i) => (match: r.Match(msg.PlainText), index: argsIndex[i]))
                 .FirstOrDefault(t => t.match.Success);
 
             if (match is null)
+            {
                 return false;
+            }
 
             object?[] args = new object?[argCount];
             if (srcIndex != -1)
