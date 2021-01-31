@@ -6,11 +6,9 @@
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using CocoaFramework.Model;
 
 namespace CocoaFramework.Core.Route
@@ -49,22 +47,7 @@ namespace CocoaFramework.Core.Route
             srcIndex = -1;
             msgIndex = -1;
 
-            if (route.ReturnType == typeof(IEnumerator))
-            {
-                processor = RouteResultProcessors.Enumerator;
-            }
-            else if (route.ReturnType == typeof(IEnumerable))
-            {
-                processor = RouteResultProcessors.Enumerable;
-            }
-            else if (route.ReturnType == typeof(string))
-            {
-                processor = RouteResultProcessors.String;
-            }
-            else if (route.ReturnType == typeof(StringBuilder))
-            {
-                processor = RouteResultProcessors.StringBuilder;
-            }
+            processor = RouteResultProcessors.GetProcessor(route.ReturnType);
 
             isVoid = route.ReturnType == typeof(void);
             isValueType = route.ReturnType.IsValueType && !isVoid;

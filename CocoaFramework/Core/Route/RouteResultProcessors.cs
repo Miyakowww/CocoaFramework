@@ -5,6 +5,7 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
+using System;
 using System.Collections;
 using System.Text;
 using CocoaFramework.Core.ProcessingModel;
@@ -16,6 +17,30 @@ namespace CocoaFramework.Core.Route
 
     internal static class RouteResultProcessors
     {
+        public static RouteResultProcessor? GetProcessor(Type type)
+        {
+            if (type == typeof(IEnumerator))
+            {
+                return Enumerator;
+            }
+            else if (type == typeof(IEnumerable))
+            {
+                return Enumerable;
+            }
+            else if (type == typeof(string))
+            {
+                return String;
+            }
+            else if (type == typeof(StringBuilder))
+            {
+                return StringBuilder;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public static bool Enumerator(MessageSource src, object? result)
         {
             if (result is not IEnumerator meeting)

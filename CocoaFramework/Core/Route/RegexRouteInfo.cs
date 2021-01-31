@@ -6,11 +6,9 @@
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using CocoaFramework.Model;
 
@@ -35,6 +33,23 @@ namespace CocoaFramework.Core.Route
 
         private readonly object _lock = new();
 
+        private static int GetParaType(Type type)
+        {
+            if (type == typeof(string))
+            {
+                return 0;
+            }
+            else if (type == typeof(string[]))
+            {
+                return 1;
+            }
+            else if (type == typeof(List<string>))
+            {
+                return 2;
+            }
+            return -1;
+        }
+
         public RegexRouteInfo(BotModuleBase module, MethodInfo route, Regex[] regexs, bool isThreadSafe)
         {
             this.module = module;
@@ -48,33 +63,18 @@ namespace CocoaFramework.Core.Route
             srcIndex = -1;
             msgIndex = -1;
 
-            if (route.ReturnType == typeof(IEnumerator))
-            {
-                processor = RouteResultProcessors.Enumerator;
-            }
-            else if (route.ReturnType == typeof(IEnumerable))
-            {
-                processor = RouteResultProcessors.Enumerable;
-            }
-            else if (route.ReturnType == typeof(string))
-            {
-                processor = RouteResultProcessors.String;
-            }
-            else if (route.ReturnType == typeof(StringBuilder))
-            {
-                processor = RouteResultProcessors.StringBuilder;
-            }
+            processor = RouteResultProcessors.GetProcessor(route.ReturnType);
 
             isVoid = route.ReturnType == typeof(void);
             isValueType = route.ReturnType.IsValueType && !isVoid;
 
             for (int i = 0; i < argCount; i++)
             {
-                if (parameters[i].ParameterType == typeof(MessageSource) && srcIndex == -1)
+                if (srcIndex == -1 && parameters[i].ParameterType == typeof(MessageSource))
                 {
                     srcIndex = i;
                 }
-                if (parameters[i].ParameterType == typeof(QMessage) && msgIndex == -1)
+                else if (msgIndex == -1 && parameters[i].ParameterType == typeof(QMessage))
                 {
                     msgIndex = i;
                 }
@@ -87,23 +87,10 @@ namespace CocoaFramework.Core.Route
                 for (int paraId = 0; paraId < argCount; paraId++)
                 {
                     string paraName = parameters[paraId].Name!;
-                    if (gnames.Contains(paraName))
+                    int paraType = GetParaType(parameters[paraId].ParameterType);
+                    if (paraType != -1 && gnames.Contains(paraName))
                     {
-                        Type paraType = parameters[paraId].ParameterType;
-
-                        // typeof(xxx) 不是常量，不能使用 switch
-                        if (paraType == typeof(string))
-                        {
-                            argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 0));
-                        }
-                        else if (paraType == typeof(string[]))
-                        {
-                            argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 1));
-                        }
-                        else if (paraType == typeof(List<string>))
-                        {
-                            argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, 2));
-                        }
+                        argsIndex[reId].Add((regexs[reId].GroupNumberFromName(paraName), paraId, paraType));
                     }
                 }
 

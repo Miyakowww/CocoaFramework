@@ -103,27 +103,10 @@ namespace CocoaFramework.Core.ProcessingModel
                     running = false;
                     return LockState.Continue;
                 }
-                if (proc.Current is IEnumerator subm)
+                if (proc.Current is IEnumerator || proc.Current is IEnumerable)
                 {
+                    IEnumerator subm = proc.Current as IEnumerator ?? (proc.Current as IEnumerable)!.GetEnumerator();
                     Meeting m = new Meeting(target, subm, root);
-                    LockState state = m.InternalRun(src, msg);
-                    if (state != LockState.Finished)
-                    {
-                        counter++;
-                        child = m;
-                        running = false;
-                        return state;
-                    }
-                    else
-                    {
-                        state = InternalRun(src, msg);
-                        running = false;
-                        return state;
-                    }
-                }
-                if (proc.Current is IEnumerable subma)
-                {
-                    Meeting m = new Meeting(target, subma.GetEnumerator(), root);
                     LockState state = m.InternalRun(src, msg);
                     if (state != LockState.Finished)
                     {
@@ -164,7 +147,7 @@ namespace CocoaFramework.Core.ProcessingModel
             }
         }
 
-        public static void Start(MessageSource src, IEnumerable proc) 
+        public static void Start(MessageSource src, IEnumerable proc)
             => Start(src, proc.GetEnumerator());
         public static void Start(MessageSource src, IEnumerator proc)
         {
@@ -178,7 +161,7 @@ namespace CocoaFramework.Core.ProcessingModel
                 ModuleCore.AddLock(m.Run);
             }
         }
-        public static void Start(ListeningTarget target, IEnumerable proc) 
+        public static void Start(ListeningTarget target, IEnumerable proc)
             => Start(target, proc.GetEnumerator());
         public static void Start(ListeningTarget target, IEnumerator proc)
         {
