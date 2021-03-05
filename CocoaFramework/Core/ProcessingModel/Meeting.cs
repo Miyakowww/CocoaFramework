@@ -33,6 +33,7 @@ namespace CocoaFramework.Core.ProcessingModel
             this.proc = proc;
             root = this;
         }
+
         private Meeting(ListeningTarget target, IEnumerator proc, Meeting root)
         {
             this.target = target;
@@ -54,10 +55,12 @@ namespace CocoaFramework.Core.ProcessingModel
             {
                 return LockState.Continue;
             }
+
             if (src is not null && !target.Fit(src))
             {
                 return LockState.Continue;
             }
+
             running = true;
             if (child is not null)
             {
@@ -72,12 +75,14 @@ namespace CocoaFramework.Core.ProcessingModel
                     return state;
                 }
             }
+
             if (receiver is not null)
             {
                 receiver.source = src;
                 receiver.message = msg;
                 receiver.IsTimeout = src is null && msg is null;
             }
+
             if (proc.MoveNext())
             {
                 if (proc.Current is MessageReceiver rec)
@@ -87,10 +92,12 @@ namespace CocoaFramework.Core.ProcessingModel
                     running = false;
                     return state;
                 }
+
                 if (proc.Current is ListeningTarget tgt)
                 {
                     target = tgt;
                 }
+
                 if (proc.Current is TimeSpan tout)
                 {
                     timeout = tout;
@@ -98,11 +105,20 @@ namespace CocoaFramework.Core.ProcessingModel
                     running = false;
                     return state;
                 }
-                if (proc.Current is NotFit)
+
+                if (proc.Current is NotFit nf)
                 {
                     running = false;
+                    if (nf.remove)
+                    {
+                        counter++;
+                        finished = true;
+                        return LockState.ContinueAndRemove;
+                    }
+
                     return LockState.Continue;
                 }
+
                 if (proc.Current is IEnumerator || proc.Current is IEnumerable)
                 {
                     IEnumerator subm = proc.Current as IEnumerator ?? (proc.Current as IEnumerable)!.GetEnumerator();
@@ -122,6 +138,7 @@ namespace CocoaFramework.Core.ProcessingModel
                         return state;
                     }
                 }
+
                 counter++;
                 if (timeout > TimeSpan.Zero)
                 {
@@ -135,6 +152,7 @@ namespace CocoaFramework.Core.ProcessingModel
                         }
                     });
                 }
+
                 running = false;
                 return LockState.NotFinished;
             }
@@ -149,26 +167,31 @@ namespace CocoaFramework.Core.ProcessingModel
 
         public static void Start(MessageSource src, IEnumerable proc)
             => Start(src, proc.GetEnumerator());
+
         public static void Start(MessageSource src, IEnumerator proc)
         {
             if (src is null)
             {
                 return;
             }
+
             Meeting m = new Meeting(ListeningTarget.FromTarget(src)!, proc);
             if (m.InternalRun(src, null) != LockState.Finished)
             {
                 ModuleCore.AddLock(m.Run);
             }
         }
+
         public static void Start(ListeningTarget target, IEnumerable proc)
             => Start(target, proc.GetEnumerator());
+
         public static void Start(ListeningTarget target, IEnumerator proc)
         {
             if (target is null)
             {
                 return;
             }
+
             Meeting m = new Meeting(target, proc);
             if (m.InternalRun(null, null) != LockState.Finished)
             {

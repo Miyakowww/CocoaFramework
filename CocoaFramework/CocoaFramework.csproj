@@ -13,9 +13,10 @@
     <Copyright>Copyright © Miyakowww 2020</Copyright>
     <PackageProjectUrl>https://github.com/Miyakowww/CocoaFramework</PackageProjectUrl>
     <PackageTags>mirai-api-http mirai</PackageTags>
-    <AssemblyVersion>1.1.6.4</AssemblyVersion>
-    <FileVersion>1.1.6.4</FileVersion>
+    <AssemblyVersion>1.1.6.6</AssemblyVersion>
+    <FileVersion>1.1.6.6</FileVersion>
     <Version>1.1.6.4</Version>
+    <PackageVersion>1.1.6.6</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

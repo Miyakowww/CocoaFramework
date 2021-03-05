@@ -5,11 +5,19 @@
 //
 // https://github.com/Miyakowww/CocoaFramework/blob/main/LICENSE
 
+using System;
+
 namespace CocoaFramework.Core.ProcessingModel
 {
     public class NotFit
     {
         private NotFit() { }
-        public static readonly NotFit Instance = new();
+        internal bool remove { get; init; }
+
+        [Obsolete("Use NotFit.Continue instead.")]
+        public static NotFit Instance => Continue;
+
+        public static readonly NotFit Continue = new() {remove = false};
+        public static readonly NotFit Stop = new() {remove = true};
     }
 }
