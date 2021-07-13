@@ -1,6 +1,8 @@
 # Cocoa Framework
 [![NuGet version (CocoaFramework)](https://img.shields.io/nuget/v/CocoaFramework.svg?style=flat)](https://www.nuget.org/packages/CocoaFramework/)  
 
+## **Cocoa Framework 2 已发布！[前往查看](https://github.com/Miyakowww/CocoaFramework2)**
+
 ## 这个是？
 这个项目是一个基于 mirai 和 Mirai-CSharp 的 QQ 机器人开发框架，致力于让任何人都能在 30 分钟内开发一款属于自己的 QQ 机器人。
 
